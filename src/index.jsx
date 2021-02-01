@@ -6,14 +6,7 @@ import './styles.css';
 
 import App from './App';
 
-let root = document.getElementById('root');
-
-if (!root) {
-	root = document.createElement('div');
-	root.id = 'root';
-
-	document.body.appendChild(root);
-}
+const root = document.getElementById('root');
 
 reactDOMRender(
 	<BrowserRouter>

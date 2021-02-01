@@ -4,7 +4,7 @@ import MapRenderer from './MapRenderer';
 
 import * as styles from './styles.css';
 
-const TEST_COUNTRY = 'rwanda';
+const TEST_COUNTRY = 'usa';
 
 const testOptions = {
 	usa: {
@@ -28,7 +28,7 @@ const testOptions = {
 	},
 	zambia: {
 		region: 'Zambia',
-		roads: ['motorway', 'trunk', 'primary', 'secondary', 'tertiary', 'unclassified'],
+		roads: ['motorway', 'trunk', 'primary', 'secondary', 'tertiary'],
 		longitudeIndicator: 'GPS_E',
 		latitudeIndicator: 'GPS_S',
 	},
@@ -43,7 +43,7 @@ export default class Map extends Component {
 		settings: {
 			coverageTravelTime: 120,
 			resolution: 1024,
-			showPopulationDensity: true,
+			showPopulationDensity: false,
 			showPoints: true,
 			pointRadius: 2,
 		},

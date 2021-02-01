@@ -4,8 +4,7 @@ import { getCredentials, login, logout } from './auth';
 export default async function (tableReference) {
 	let token = getCredentials();
 	if (!token) {
-		await login();
-		token = getCredentials();
+		throw new Error('Not logged in');
 	}
 	let tableResponse = await retryableFetch(`https://redivis.com/api/v1/tables/${tableReference}`, {
 		headers: {

@@ -7,7 +7,7 @@ export default async function getRoads(roads, boundaryStringArray, topologyMap, 
 		if (roadType.indexOf('.json') > -1) {
 			roadType = roadType.split('.json')[0];
 			parallelTasks.push(
-				retryableFetch(`assets/topojson/${roadType}/features.json`).then(async (res) => {
+				retryableFetch(`/assets/topojson/${roadType}/features.json`).then(async (res) => {
 					res = await res.json();
 					topologyMap[`roads_${roadType}_${regionName ? regionName : ''}`] = res;
 				}),
