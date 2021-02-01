@@ -1,0 +1,30 @@
+.appWrapper{
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.headerWrapper{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 90px;
+}
+
+.header{
+    padding: 14px;
+    margin-left: 400px;
+}
+
+.navigation{
+    padding-left: 404px;
+    background: rgb(0, 152, 72);
+    color: white;
+}
+
+.bodyWrapper{
+    position: relative;
+    height: calc(100% - 90px);
+}
+
+
