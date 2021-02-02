@@ -51,12 +51,12 @@ export default async function executeQuery(query) {
 		await cache.set(query, geojson);
 		return geojson;
 	} else {
-		if (res.statusCode === 429) {
-			alert(
-				`Request failed, HTTP Status ${res.statusCode}. OSM is currently rate-limiting this IP; try again soon.`,
-			);
-		} else {
-			alert(`OSM Request failed, HTTP Status ${res.statusCode}.`);
-		}
+		const error = await res.text();
+		throw new Error(error);
+		// if (res.status === 429) {
+		// 	alert(`Request failed, HTTP Status ${res.status}. OSM is currently rate-limiting this IP; try again soon.`);
+		// } else {
+		// 	alert(`OSM Request failed, HTTP Status ${res.status}.`);
+		// }
 	}
 }
