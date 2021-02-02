@@ -1,68 +1,108 @@
 import * as styles from './styles.css';
 
-import React, { Component } from 'react';
-import { withRouter, Route, Switch } from 'react-router-dom';
+import React, { useEffect, useState, useRef } from 'react';
 
-import MapWrapper from '../MapWrapper';
-
+import Map from '../Map';
+import Settings from '../Settings';
 import Typography from '@material-ui/core/Typography';
-import { withStyles } from '@material-ui/core/styles';
+
+import { makeStyles } from '@material-ui/core/styles';
 import { grey } from '@material-ui/core/colors';
 
-const CustomTitle = withStyles({
+import getCollection from '../helpers/getCollection';
+
+const useTitleStyles = makeStyles({
 	root: {
 		fontSize: 20,
 	},
-})(Typography);
+})
 
-const CustomSubTitle = withStyles({
+const useSubtitleStyles = makeStyles({
 	root: {
 		marginLeft: 10,
 		fontSize: 20,
 		color: grey[600],
-	},
-})(Typography);
+	}
+})
 
-class App extends Component {
-	constructor(props) {
-		super(props);
-		const { history } = props;
-		let path = localStorage.getItem('path');
-		if (path) {
-			localStorage.removeItem('path');
+export default function App({
+	history,
+}){
+	useEffect(() => {
+		const path = localStorage.getItem('path');
+		if (path){
+			localStorage.removeItem('path')
 			history.replace(`/${path}`);
 		}
-	}
+	}, []);
 
-	renderHeader = () => {
+	const [tableState, setTableState] = useState({
+		owner: 'ianmathews91',
+		parentEntity: 'rwanda_geospatial_coverage',
+		table: 'coverage',
+	});
+
+	const fullTableReference = `${tableState.owner}.${tableState.parentEntity}.${tableState.table}`;
+
+	const [mapState, setMapState] = useState({
+		region: 'United States',
+		subregion: '',
+		latitude: '',
+		longitude: '',
+		roads: ['motorway', 'trunk', 'primary'],
+	});
+
+	const titleClasses = useTitleStyles();
+	const subtitleClasses = useSubtitleStyles()
+
+	const renderHeader = () => {
 		return (
 			<div className={styles.headerWrapper}>
 				<div className={styles.header}>
-					<CustomTitle component={'h4'}>{'Redivis Labs'}</CustomTitle>
-					<CustomSubTitle component={'h4'}>{'Geospatial coverage analyzer'}</CustomSubTitle>
+					<Typography className={titleClasses.root} component={'h4'}>{'Redivis Labs'}</Typography>
+					<Typography className={subtitleClasses.root} component={'h4'}>{'Geospatial coverage analyzer'}</Typography>
 				</div>
 			</div>
 		);
 	};
 
-	renderBody = () => {
+	const collection = useRef(null);
+
+	useEffect(async () => {
+		try {
+			console.log('fetching collection', fullTableReference);
+			const collection = await getCollection(fullTableReference);
+			console.log('collection', collection);
+		} catch (e){
+			console.error(e);
+		}
+	}, [fullTableReference]);
+
+	const renderBody = () => {
 		return (
 			<div className={styles.bodyWrapper}>
-				<Switch>
-					<Route component={MapWrapper} />
-				</Switch>
+				<div className={styles.mapWrapper}>
+					<div className={styles.settings}>
+						<Settings
+							tableState={tableState}
+							setTableState={setTableState}
+							mapState={mapState}
+							setMapState={setMapState}
+						/>
+					</div>
+					<div className={styles.map}>
+						<Map />
+					</div>
+				</div>
 			</div>
 		);
 	};
 
-	render() {
-		return (
-			<div className={styles.appWrapper}>
-				{this.renderHeader()}
-				{this.renderBody()}
-			</div>
-		);
-	}
-}
 
-export default withRouter(App);
+	return (
+		<div className={styles.appWrapper}>
+			{renderHeader()}
+			{renderBody()}
+		</div>
+	);
+}

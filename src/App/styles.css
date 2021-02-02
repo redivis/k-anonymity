@@ -27,4 +27,29 @@
     height: calc(100% - 90px);
 }
 
+.mapWrapper {
+    height: 100%;
+}
+
+.settings {
+    position: absolute;
+    height: 100%;
+    overflow: auto;
+    display: inline-block;
+    float: left;
+    width: 400px;
+    z-index: 1;
+    border-radius: 0 4px 4px 0;
+    background-color: white;
+}
+
+.map {
+    position: absolute;
+    height: 100%;
+    left: 480px;
+    display: inline-block;
+    float: left;
+    width: calc(100% - 480px);
+}
+
 
