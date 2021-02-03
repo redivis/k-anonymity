@@ -1,4 +1,5 @@
-import React, { Component, useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect } from 'react';
+import PropTypes from 'prop-types';
 
 import MapRenderer from './MapRenderer';
 
@@ -34,45 +35,64 @@ const testOptions = {
 	},
 };
 
-export default class Map extends Component {
-	static propTypes = {};
+export default function Map({ collection, mapData, options, settings }) {
+	const mapElement = useRef(null);
+	const mapRenderer = useRef(null);
 
-	static defaultProps = {
-		tableReference: `ianmathews91.geospatial_coverage.${TEST_COUNTRY}`,
-		options: testOptions[TEST_COUNTRY],
-		settings: {
-			coverageTravelTime: 120,
-			resolution: 1024,
-			showPopulationDensity: false,
-			showPoints: true,
-			pointRadius: 2,
-		},
-	};
+	useEffect(() => {
+		if (mapElement.current) {
+			if (!mapRenderer.current) {
+				mapRenderer.current = new MapRenderer(mapElement.current, {
+					collection,
+					mapData,
+					options,
+					settings,
+				});
+			} else {
+				mapRenderer.current.update({
+					collection,
+					mapData,
+					options,
+					settings,
+				});
+			}
+		}
+		return () => {
+			if (mapRenderer.current) {
+				mapRenderer.current.unload();
+			}
+		};
+	}, [mapElement.current, collection, mapData, options, settings]);
 
-	componentDidMount() {
-		this.mapRenderer = new MapRenderer(this.mapElement, this.props);
-	}
-
-	componentDidUpdate(prevProps) {
-		this.mapRenderer.update(this.props);
-	}
-
-	componentWillUnmount() {
-		this.mapRenderer.unload();
-	}
-
-	render() {
-		return (
-			<div ref={(mapElement) => (this.mapElement = mapElement)} className={styles.wrapper}>
-				<button
-					className={styles.downloadButton}
-					onClick={() => {
-						this.mapRenderer?.downloadCsv?.();
-					}}
-				>
-					Download coverage data
-				</button>
-			</div>
-		);
-	}
+	return (
+		<div ref={mapElement} className={styles.wrapper}>
+			<button
+				className={styles.downloadButton}
+				onClick={() => {
+					mapRenderer?.current?.downloadCsv?.();
+				}}
+			>
+				Download coverage data
+			</button>
+		</div>
+	);
 }
+
+Map.propTypes = {
+	collection: PropTypes.object,
+	mapData: PropTypes.object,
+	options: PropTypes.object,
+	settings: PropTypes.object,
+};
+
+Map.defaultProps = {
+	// tableReference: `ianmathews91.geospatial_coverage.${TEST_COUNTRY}`,
+	options: testOptions[TEST_COUNTRY],
+	settings: {
+		coverageTravelTime: 120,
+		resolution: 1024,
+		showPopulationDensity: false,
+		showPoints: true,
+		pointRadius: 2,
+	},
+};
