@@ -29,7 +29,6 @@ export default function (collection, geoData) {
 	this.points.length = 0;
 	if (this.unboundPoints) this.unboundPoints.length = 0;
 	else this.unboundPoints = [];
-	console.log(this);
 	let index = 0;
 	const points = this.points;
 	const matchedFeatures = [];

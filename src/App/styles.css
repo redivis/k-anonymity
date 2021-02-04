@@ -17,12 +17,6 @@
     margin-left: 400px;
 }
 
-.navigation{
-    padding-left: 404px;
-    background: rgb(0, 152, 72);
-    color: white;
-}
-
 .bodyWrapper{
     position: relative;
     height: calc(100% - 58px);

@@ -1,5 +1,5 @@
-import React, { useCallback, useState } from 'react';
 import PropTypes from 'prop-types';
+import React, { useCallback, useState } from 'react';
 
 import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
@@ -35,13 +35,42 @@ import roadOptions from 'helpers/roadOptions';
 
 import * as styles from './styles.css';
 
+function getRegionHeader(countryName) {
+	const countryObject = countries.find(({ name }) => name === countryName);
+	if (countryObject) {
+		return countryObject.code;
+	} else {
+		return countryName;
+	}
+}
+
+const tableReferenceRegex = /^\/tables\/([^.]+)\.([^.]+)\.([^.]+)$/i;
+function getTableReference({ uri = '', name }) {
+	const match = uri.match(tableReferenceRegex);
+	if (match) {
+		const fullReference = {
+			ownerReference: match[1],
+			parentEntityReference: match[2].split(':')[0],
+			qualifiedParentEntityReference: match[2],
+			tableReference: match[3].split(':')[0],
+			qualifiedTableReference: match[3],
+		};
+		return fullReference.tableReference;
+	} else {
+		return name;
+	}
+}
+
 const useFormStyles = makeStyles({
 	formControl: {
 		width: '100%',
 	},
 	formControlLabel: {
-		marginLeft: 10,
-		marginBottom: 10,
+		marginTop: 7,
+		marginBottom: 15,
+	},
+	radioGroup: {
+		marginLeft: 11,
 	},
 	pending: {
 		color: grey[500],
@@ -74,12 +103,37 @@ const useFormStyles = makeStyles({
 });
 
 export default function Settings({
-	tableState,
-	setTableState,
-	mapState,
-	setMapState,
-	settingsState,
-	setSettingsState,
+	owner,
+	setOwner,
+	parentEntity,
+	setParentEntity,
+	table,
+	setTable,
+	region,
+	setRegion,
+	subregion,
+	setSubregion,
+	latitudeIndicator,
+	setLatitudeIndicator,
+	longitudeIndicator,
+	setLongitudeIndicator,
+	roads,
+	setRoads,
+	coverageTravelTime,
+	setCoverageTravelTime,
+	resolution,
+	setResolution,
+	showPoints,
+	setShowPoints,
+	showPopulationDensity,
+	setShowPopulationDensity,
+	pointRadius,
+	setPointRadius,
+	colorScale,
+	setColorScale,
+	tables,
+	isFetchingTables,
+	tablesError,
 	collection,
 	isFetchingCollection,
 	collectionError,
@@ -102,52 +156,87 @@ export default function Settings({
 		window.location.assign(window.location.href);
 	}, []);
 
-	const handleSetTableState = (e) => {
-		setTableState({ ...tableState, [e.target.name]: e.target.value });
-	};
+	const resetLatAndLong = useCallback(() => {
+		setLatitudeIndicator('');
+		setLongitudeIndicator('');
+	}, []);
 
-	const handleSetMapState = (e) => {
-		setMapState({ ...mapState, [e.target.name]: e.target.value });
-	};
+	const handleSetOwner = useCallback((e) => {
+		setOwner(e.target.value);
+		resetLatAndLong();
+	}, []);
 
-	const handleSetRoadState = (e) => {
-		const nextSelectedRoadsSet = new Set([...selectedRoadsSet]);
-		if (e.target.checked) {
-			nextSelectedRoadsSet.add(e.target.name);
-		} else {
-			nextSelectedRoadsSet.delete(e.target.name);
-		}
-		setMapState({ ...mapState, roads: [...nextSelectedRoadsSet] });
-	};
+	const handleSetParentEntity = useCallback((e) => {
+		setParentEntity(e.target.value);
+		resetLatAndLong();
+	}, []);
 
-	const handleSetSettingsState = (e) => {
-		setSettingsState({ ...settingsState, [e.target.name]: e.target.value });
-	};
+	const handleSetTable = useCallback((e) => {
+		setTable(e.target.value);
+		resetLatAndLong();
+	}, []);
 
-	const handleSetSettingsBooleanState = (e) => {
-		setSettingsState({ ...settingsState, [e.target.name]: e.target.checked });
-	};
+	const handleSetRegion = useCallback((e) => {
+		setRegion(e.target.value);
+	}, []);
 
-	const [showTableOptions, setShowTableOptions] = useState(true);
-	const [showRegion, setShowRegion] = useState(true);
-	const [showLatLong, setShowLatLong] = useState(true);
-	const [showRoads, setShowRoads] = useState(false);
-	const [showSettings, setShowSettings] = useState(false);
+	const handleSetSubregion = useCallback((e) => {
+		setSubregion(e.target.value);
+	}, []);
+
+	const handleSetLatitudeIndicator = useCallback((e) => {
+		setLatitudeIndicator(e.target.value);
+	}, []);
+
+	const handleSetLongitudeIndicator = useCallback((e) => {
+		setLongitudeIndicator(e.target.value);
+	}, []);
+
+	const handleSetRoads = useCallback(
+		(e) => {
+			const nextSelectedRoadsSet = new Set(roads);
+			if (e.target.checked) {
+				nextSelectedRoadsSet.add(e.target.name);
+			} else {
+				nextSelectedRoadsSet.delete(e.target.name);
+			}
+			setRoads([...nextSelectedRoadsSet]);
+		},
+		[roads],
+	);
+
+	const handleSetCoverageTravelTime = useCallback((e) => {
+		setCoverageTravelTime(e.target.value);
+	}, []);
+
+	const handleSetResolution = useCallback((e) => {
+		setResolution(e.target.value);
+	}, []);
+
+	const handleSetShowPoints = useCallback((e) => {
+		setShowPoints(e.target.checked);
+	}, []);
+
+	const handleSetShowPopulationDensity = useCallback((e) => {
+		setShowPopulationDensity(e.target.checked);
+	}, []);
+
+	const handleSetPointRadius = useCallback((e) => {
+		setPointRadius(e.target.value);
+	}, []);
 
 	const formClasses = useFormStyles();
 
-	const { owner, parentEntity, table } = tableState;
-	const { region, subregion, latitudeIndicator, longitudeIndicator, roads } = mapState;
-	const {
-		coverageTravelTime,
-		resolution,
-		showPoints,
-		showPopulationDensity,
-		pointRadius,
-		colorScale,
-	} = settingsState;
-
 	const selectedRoadsSet = new Set(roads);
+	const useCustomRoads = region.toLowerCase() === 'united states' && !subregion;
+
+	const [showTableOptions, setShowTableOptions] = useState(true);
+	const [showRegion, setShowRegion] = useState(true);
+	const [showLatLong, setShowLatLong] = useState(!!(latitudeIndicator && longitudeIndicator));
+	const [showRoads, setShowRoads] = useState(false);
+	const [showSettings, setShowSettings] = useState(false);
+
+	const selectedListTable = tables.find(({ uri, name }) => getTableReference({ uri, name }) === table.toLowerCase());
 
 	return (
 		<div className={styles.sideBarWrapper}>
@@ -168,7 +257,9 @@ export default function Settings({
 							className={formClasses.listItem}
 						>
 							<ListItemText className={formClasses.listItemText}>{'Data table'}</ListItemText>
-							{isFetchingCollection && <CircularProgress size={20} className={formClasses.pending} />}
+							{(isFetchingCollection || isFetchingTables) && (
+								<CircularProgress size={20} className={formClasses.pending} />
+							)}
 							{table && (
 								<Badge badgeContent={''} variant={'dot'} color={'error'} invisible={!collectionError}>
 									<Chip size={'small'} label={`${parentEntity}.${table}`} />
@@ -184,8 +275,9 @@ export default function Settings({
 											name={'owner'}
 											label={'Owner'}
 											value={owner}
-											onChange={handleSetTableState}
+											onChange={handleSetOwner}
 											fullWidth={true}
+											variant={'outlined'}
 											placeholder={'username or organizationShortName'}
 										/>
 									}
@@ -197,28 +289,53 @@ export default function Settings({
 											name={'parentEntity'}
 											label={'Dataset/project'}
 											value={parentEntity}
-											onChange={handleSetTableState}
+											onChange={handleSetParentEntity}
 											fullWidth={true}
-											placeholder={'dataset identifier or project identifier'}
+											variant={'outlined'}
+											placeholder={'dataset or project identifier'}
 										/>
 									}
 									className={formClasses.formControlLabel}
 								/>
 								<FormControlLabel
 									control={
-										<TextField
-											name={'table'}
-											label={'Table'}
-											value={table}
-											onChange={handleSetTableState}
-											fullWidth={true}
-											placeholder={'table identifier'}
-										/>
+										tables.length ? (
+											<TextField
+												name={'table'}
+												label={'Table'}
+												value={selectedListTable ? getTableReference(selectedListTable) : ''}
+												select={true}
+												onChange={handleSetTable}
+												fullWidth={true}
+												variant={'outlined'}
+												placeholder={'table identifier'}
+											>
+												{tables.map(({ uri, name }) => {
+													const tableReference = getTableReference({ uri, name });
+													return (
+														<MenuItem key={tableReference} value={tableReference}>
+															{tableReference}
+														</MenuItem>
+													);
+												})}
+												}
+											</TextField>
+										) : (
+											<TextField
+												name={'table'}
+												label={'Table'}
+												value={table}
+												onChange={handleSetTable}
+												fullWidth={true}
+												variant={'outlined'}
+												placeholder={'table identifier'}
+											/>
+										)
 									}
 									className={formClasses.formControlLabel}
 								/>
 							</FormGroup>
-							<FormHelperText>{collectionError?.message || ''}</FormHelperText>
+							<FormHelperText>{collectionError?.message || tablesError?.message || ''}</FormHelperText>
 						</Collapse>
 					</FormControl>
 				</div>
@@ -231,7 +348,12 @@ export default function Settings({
 						>
 							<ListItemText primary={'Region'} className={formClasses.listItemText} />
 							{isFetchingMap && <CircularProgress size={20} className={formClasses.pending} />}
-							{region && <Chip size={'small'} label={`${region}${subregion ? `/${subregion}` : ''}`} />}
+							{region && (
+								<Chip
+									size={'small'}
+									label={`${getRegionHeader(region)}${subregion ? ` (${subregion})` : ''}`}
+								/>
+							)}
 							{showRegion ? <ExpandMore edge={'end'} /> : <ExpandLess edge={'end'} />}
 						</ListItem>
 						<Collapse in={showRegion} className={formClasses.collapse}>
@@ -243,11 +365,11 @@ export default function Settings({
 											label={'Region'}
 											value={region}
 											select={true}
-											onChange={handleSetMapState}
+											onChange={handleSetRegion}
 											fullWidth={true}
-											placeholder={'country or region'}
+											variant={'outlined'}
 										>
-											{countries.map(({ name, code }) => (
+											{countries.map(({ name }) => (
 												<MenuItem key={name} value={name}>
 													{name}
 												</MenuItem>
@@ -260,10 +382,11 @@ export default function Settings({
 									control={
 										<TextField
 											name={'subregion'}
-											label={'Subregion'}
+											label={'Subregion (optional)'}
 											value={subregion}
-											onChange={handleSetMapState}
+											onChange={handleSetSubregion}
 											fullWidth={true}
+											variant={'outlined'}
 										/>
 									}
 									className={formClasses.formControlLabel}
@@ -287,12 +410,11 @@ export default function Settings({
 						>
 							<ListItemText primary={'Latitude & longitude'} className={formClasses.listItemText} />
 							{isFetchingCollection && <CircularProgress size={20} className={formClasses.pending} />}
-
 							<Badge
 								badgeContent={''}
 								variant={'dot'}
 								color={'error'}
-								invisible={latitudeIndicator && longitudeIndicator}
+								invisible={isFetchingCollection || !!(latitudeIndicator && longitudeIndicator)}
 							>
 								<Chip
 									size={'small'}
@@ -311,8 +433,9 @@ export default function Settings({
 											label={'Latitude'}
 											value={latitudeIndicator}
 											select={true}
-											onChange={handleSetMapState}
+											onChange={handleSetLatitudeIndicator}
 											fullWidth={true}
+											variant={'outlined'}
 											placeholder={'Select variable'}
 										>
 											{(collection?.indicators || []).map(({ variable: { name } = {} }) => (
@@ -331,8 +454,9 @@ export default function Settings({
 											label={'Longitude'}
 											value={longitudeIndicator}
 											select={true}
-											onChange={handleSetMapState}
+											onChange={handleSetLongitudeIndicator}
 											fullWidth={true}
+											variant={'outlined'}
 											placeholder={'Select variable'}
 										>
 											{(collection?.indicators || []).map(({ variable: { name } = {} }) => (
@@ -344,11 +468,13 @@ export default function Settings({
 									}
 									className={formClasses.formControlLabel}
 								/>
-								<FormHelperText>{`Select ${
-									!latitudeIndicator
-										? `latitude ${!longitudeIndicator ? 'and longitude' : ''}`
-										: 'longitude'
-								} variable${!latitudeIndicator && !longitudeIndicator ? 's' : ''}`}</FormHelperText>
+								{!isFetchingCollection && (!latitudeIndicator || !longitudeIndicator) && (
+									<FormHelperText>{`Select ${
+										!latitudeIndicator
+											? `latitude ${!longitudeIndicator ? 'and longitude' : ''}`
+											: 'longitude'
+									} variable${!latitudeIndicator && !longitudeIndicator ? 's' : ''}`}</FormHelperText>
+								)}
 							</FormGroup>
 						</Collapse>
 					</FormControl>
@@ -361,7 +487,28 @@ export default function Settings({
 							className={formClasses.listItem}
 						>
 							<ListItemText primary={'Roads'} className={formClasses.listItemText} />
-							<Chip size={'small'} label={selectedRoadsSet.size} />
+							<Tooltip
+								title={
+									useCustomRoads ? (
+										`The ${region} map uses a custom roads configuration`
+									) : (
+										<React.Fragment>
+											<a
+												href={'https://wiki.openstreetmap.org/wiki/Key:highway'}
+												target={'_blank'}
+											>
+												{'Learn more'}
+											</a>
+											<span>{' about OpenStreetMap roads'}</span>
+										</React.Fragment>
+									)
+								}
+								interactive={true}
+								placement={'bottom-start'}
+								arrow={true}
+							>
+								<Chip size={'small'} label={useCustomRoads ? 'Custom' : selectedRoadsSet.size} />
+							</Tooltip>
 							{showRoads ? <ExpandMore edge={'end'} /> : <ExpandLess edge={'end'} />}
 						</ListItem>
 						<Collapse in={showRoads} className={formClasses.collapse}>
@@ -369,13 +516,15 @@ export default function Settings({
 								{roadOptions.map(({ label, name }) => (
 									<FormControlLabel
 										key={name}
+										disabled={useCustomRoads}
 										control={
 											<Checkbox
 												key={name}
 												name={name}
-												checked={selectedRoadsSet.has(name)}
+												checked={!useCustomRoads && selectedRoadsSet.has(name)}
+												indeterminate={useCustomRoads}
 												color={'primary'}
-												onChange={handleSetRoadState}
+												onChange={handleSetRoads}
 											/>
 										}
 										label={label}
@@ -403,9 +552,9 @@ export default function Settings({
 											name={'coverageTravelTime'}
 											label={'Coverage travel time (mins)'}
 											value={coverageTravelTime}
-											onChange={handleSetSettingsState}
+											onChange={handleSetCoverageTravelTime}
 											fullWidth={true}
-											placeholder={'Minutes'}
+											variant={'outlined'}
 										/>
 									}
 									className={formClasses.formControlLabel}
@@ -417,7 +566,8 @@ export default function Settings({
 											name={'resolution'}
 											value={resolution}
 											color={'primary'}
-											onChange={handleSetSettingsState}
+											onChange={handleSetResolution}
+											className={formClasses.radioGroup}
 										>
 											<FormHelperText className={formClasses.helperText}>
 												{'Resolution'}
@@ -433,20 +583,22 @@ export default function Settings({
 										<Switch
 											name={'showPoints'}
 											checked={showPoints}
-											onChange={handleSetSettingsBooleanState}
+											onChange={handleSetShowPoints}
 										/>
 									}
 									label={'Show points'}
+									className={formClasses.formControlLabel}
 								/>
 								<FormControlLabel
 									control={
 										<Switch
 											name={'showPopulationDensity'}
 											checked={showPopulationDensity}
-											onChange={handleSetSettingsBooleanState}
+											onChange={handleSetShowPopulationDensity}
 										/>
 									}
 									label={'Show population density'}
+									className={formClasses.formControlLabel}
 								/>
 								<FormControlLabel
 									control={
@@ -454,9 +606,9 @@ export default function Settings({
 											name={'pointRadius'}
 											label={'Point radius (px)'}
 											value={pointRadius}
-											onChange={handleSetSettingsState}
+											onChange={handleSetPointRadius}
 											fullWidth={true}
-											placeholder={'px'}
+											variant={'outlined'}
 										/>
 									}
 									className={formClasses.formControlLabel}
@@ -471,12 +623,35 @@ export default function Settings({
 }
 
 Settings.propTypes = {
-	tableState: PropTypes.object,
-	setTableState: PropTypes.func,
-	mapState: PropTypes.object,
-	setMapState: PropTypes.func,
-	settingsState: PropTypes.object,
-	setSettingsState: PropTypes.func,
+	owner: PropTypes.string,
+	setOwner: PropTypes.func,
+	parentEntity: PropTypes.string,
+	setParentEntity: PropTypes.func,
+	table: PropTypes.string,
+	setTable: PropTypes.func,
+	tables: PropTypes.arrayOf(PropTypes.object),
+	region: PropTypes.string,
+	setRegion: PropTypes.func,
+	subregion: PropTypes.string,
+	setSubregion: PropTypes.func,
+	latitudeIndicator: PropTypes.string,
+	setLatitudeIndicator: PropTypes.func,
+	longitudeIndicator: PropTypes.string,
+	setLongitudeIndicator: PropTypes.func,
+	roads: PropTypes.arrayOf(PropTypes.string),
+	setRoads: PropTypes.func,
+	coverageTravelTime: PropTypes.string,
+	setCoverageTravelTime: PropTypes.func,
+	resolution: PropTypes.string,
+	setResolution: PropTypes.func,
+	showPoints: PropTypes.bool,
+	setShowPoints: PropTypes.func,
+	showPopulationDensity: PropTypes.bool,
+	setShowPopulationDensity: PropTypes.func,
+	pointRadius: PropTypes.string,
+	setPointRadius: PropTypes.func,
+	colorScale: PropTypes.arrayOf(PropTypes.string),
+	setColorScale: PropTypes.func,
 	collection: PropTypes.object,
 	isFetchingCollection: PropTypes.bool,
 	collectionError: PropTypes.object,

@@ -1,9 +1,12 @@
-import React, { useRef, useEffect } from 'react';
 import PropTypes from 'prop-types';
+import React, { useRef, useEffect, useCallback } from 'react';
+import useTimeout from 'helpers/useTimeout';
 
 import MapRenderer from './MapRenderer';
 
 import * as styles from './styles.css';
+
+const MAP_UPDATE_TIMEOUT_MS = 1000;
 
 const TEST_COUNTRY = 'usa';
 
@@ -35,9 +38,39 @@ const testOptions = {
 	},
 };
 
-export default function Map({ collection, mapData, options, settings }) {
+export default function Map({
+	collection,
+	mapData,
+	region,
+	subregion,
+	latitudeIndicator,
+	longitudeIndicator,
+	roads,
+	coverageTravelTime,
+	resolution,
+	showPoints,
+	showPopulationDensity,
+	pointRadius,
+	colorScale,
+}) {
 	const mapElement = useRef(null);
 	const mapRenderer = useRef(null);
+
+	const options = {
+		region,
+		subregion,
+		latitudeIndicator,
+		longitudeIndicator,
+		roads,
+	};
+	const settings = {
+		coverageTravelTime,
+		resolution,
+		showPoints,
+		showPopulationDensity,
+		pointRadius,
+		colorScale,
+	};
 
 	useEffect(() => {
 		if (mapElement.current) {
@@ -62,7 +95,73 @@ export default function Map({ collection, mapData, options, settings }) {
 				mapRenderer.current.unload();
 			}
 		};
-	}, [mapElement.current, collection, mapData, options, settings]);
+	}, [
+		mapElement.current,
+		collection,
+		mapData,
+		region,
+		subregion,
+		latitudeIndicator,
+		longitudeIndicator,
+		roads,
+		coverageTravelTime,
+		resolution,
+		showPoints,
+		showPopulationDensity,
+		pointRadius,
+		colorScale,
+	]);
+
+	// TODO: why is useTime hook not firing more than once?
+	// const updateMap = useCallback(() => {
+	// 	if (mapElement.current) {
+	// 		if (!mapRenderer.current) {
+	// 			mapRenderer.current = new MapRenderer(mapElement.current, {
+	// 				collection,
+	// 				mapData,
+	// 				options,
+	// 				settings,
+	// 			});
+	// 		} else {
+	// 			mapRenderer.current.update({
+	// 				collection,
+	// 				mapData,
+	// 				options,
+	// 				settings,
+	// 			});
+	// 		}
+	// 	}
+	// 	return () => {
+	// 		if (mapRenderer.current) {
+	// 			mapRenderer.current.unload();
+	// 		}
+	// 	};
+	// }, [
+	// 	mapElement.current,
+	// 	collection,
+	// 	mapData,
+	// 	region,
+	// 	subregion,
+	// 	latitudeIndicator,
+	// 	longitudeIndicator,
+	// 	roads,
+	// 	coverageTravelTime,
+	// 	resolution,
+	// 	showPoints,
+	// 	showPopulationDensity,
+	// 	pointRadius,
+	// 	colorScale,
+	// ]);
+	//
+	// const [setMapTimeout, clearMapTimeout] = useTimeout(updateMap, MAP_UPDATE_TIMEOUT_MS);
+	//
+	// useEffect(() => {
+	// 	clearMapTimeout();
+	// 	setMapTimeout();
+	// 	return () => {
+	// 		clearMapTimeout();
+	// 	};
+	// }, [updateMap]);
 
 	return (
 		<div ref={mapElement} className={styles.wrapper}>
@@ -81,12 +180,23 @@ export default function Map({ collection, mapData, options, settings }) {
 Map.propTypes = {
 	collection: PropTypes.object,
 	mapData: PropTypes.object,
+	region: PropTypes.string,
+	subregion: PropTypes.string,
+	latitudeIndicator: PropTypes.string,
+	longitudeIndicator: PropTypes.string,
+	roads: PropTypes.arrayOf(PropTypes.string),
+	mapState: PropTypes.object,
+	coverageTravelTime: PropTypes.string,
+	resolution: PropTypes.string,
+	showPoints: PropTypes.bool,
+	showPopulationDensity: PropTypes.bool,
+	pointRadius: PropTypes.string,
+	colorScale: PropTypes.arrayOf(PropTypes.string),
 	options: PropTypes.object,
 	settings: PropTypes.object,
 };
 
 Map.defaultProps = {
-	// tableReference: `ianmathews91.geospatial_coverage.${TEST_COUNTRY}`,
 	options: testOptions[TEST_COUNTRY],
 	settings: {
 		coverageTravelTime: 120,
