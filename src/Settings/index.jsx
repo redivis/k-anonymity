@@ -1,7 +1,6 @@
 import PropTypes from 'prop-types';
 import React, { useCallback, useState } from 'react';
 
-import Button from '@material-ui/core/Button';
 import TextField from '@material-ui/core/TextField';
 import MenuItem from '@material-ui/core/MenuItem';
 import Checkbox from '@material-ui/core/Checkbox';
@@ -29,7 +28,6 @@ import Tooltip from '@material-ui/core/Tooltip';
 
 import { makeStyles } from '@material-ui/core/styles';
 
-import { logout, login, getCredentials } from 'helpers/auth';
 import countries from 'helpers/countryList';
 import roadOptions from 'helpers/roadOptions';
 
@@ -140,22 +138,6 @@ export default function Settings({
 	isFetchingMap,
 	mapDataError,
 }) {
-	const accessToken = getCredentials();
-
-	const handleSignIn = useCallback(async () => {
-		try {
-			await login();
-			window.location.assign(window.location.href);
-		} catch (e) {
-			console.error(e);
-		}
-	}, []);
-
-	const handleSignOut = useCallback(async () => {
-		logout();
-		window.location.assign(window.location.href);
-	}, []);
-
 	const resetLatAndLong = useCallback(() => {
 		setLatitudeIndicator('');
 		setLongitudeIndicator('');
@@ -241,14 +223,6 @@ export default function Settings({
 	return (
 		<div className={styles.sideBarWrapper}>
 			<div className={styles.bodyWrapper}>
-				<div className={styles.sectionWrapper}>
-					{!accessToken && (
-						<Button variant={'contained'} color={'primary'} onClick={handleSignIn}>
-							{'Sign in to Redivis'}
-						</Button>
-					)}
-					{!!accessToken && <Button onClick={handleSignOut}>{'Sign out'}</Button>}
-				</div>
 				<div className={styles.sectionWrapper}>
 					<FormControl component={'fieldset'} error={!!collectionError} className={formClasses.formControl}>
 						<ListItem

@@ -5,10 +5,12 @@ import useTimeout from 'helpers/useTimeout';
 import Map from '../Map';
 import Settings from '../Settings';
 import Typography from '@material-ui/core/Typography';
+import Button from '@material-ui/core/Button';
 
 import { makeStyles, createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
 import { grey } from '@material-ui/core/colors';
 
+import { getCredentials, login, logout } from 'helpers/auth';
 import getTables from 'helpers/getTables';
 import getCollection from 'helpers/getCollection';
 import getOSMMap from '../Map/OSM/getMap';
@@ -92,6 +94,22 @@ export default function App({ history }) {
 			localStorage.removeItem('path');
 			history.replace(`/${path}`);
 		}
+	}, []);
+
+	const accessToken = getCredentials();
+
+	const handleSignIn = useCallback(async () => {
+		try {
+			await login();
+			window.location.assign(window.location.href);
+		} catch (e) {
+			console.error(e);
+		}
+	}, []);
+
+	const handleSignOut = useCallback(async () => {
+		logout();
+		window.location.assign(window.location.href);
 	}, []);
 
 	const [owner, setOwner] = useState(DEFAULT_OWNER);
@@ -222,12 +240,33 @@ export default function App({ history }) {
 		return (
 			<div className={styles.headerWrapper}>
 				<div className={styles.header}>
-					<Typography className={titleClasses.root} component={'h4'}>
-						{'Redivis Labs'}
-					</Typography>
-					<Typography className={titleClasses.subtitle} component={'h4'}>
-						{'Geospatial coverage analyzer'}
-					</Typography>
+					<div className={styles.titleWrapper}>
+						<Typography className={titleClasses.root} component={'h4'}>
+							{'Redivis Labs'}
+						</Typography>
+						<Typography className={titleClasses.subtitle} component={'h4'}>
+							{'Geospatial coverage analyzer'}
+						</Typography>
+					</div>
+					<div className={styles.linkWrapper}>
+						<div className={styles.buttonWrapper}>
+							<Button size={'small'} href={`https://github.com/redivis/geo-coverage`} target={'_blank'}>
+								{'Github'}
+							</Button>
+						</div>
+						<div className={styles.buttonWrapper}>
+							{!accessToken && (
+								<Button size={'small'} variant={'contained'} color={'primary'} onClick={handleSignIn}>
+									{'Sign in to Redivis'}
+								</Button>
+							)}
+							{!!accessToken && (
+								<Button size={'small'} onClick={handleSignOut}>
+									{'Sign out'}
+								</Button>
+							)}
+						</div>
+					</div>
 				</div>
 			</div>
 		);

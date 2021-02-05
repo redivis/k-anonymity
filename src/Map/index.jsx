@@ -3,6 +3,7 @@ import React, { useRef, useEffect, useCallback } from 'react';
 import useTimeout from 'helpers/useTimeout';
 
 import MapRenderer from './MapRenderer';
+import Button from '@material-ui/core/Button';
 
 import * as styles from './styles.css';
 
@@ -165,14 +166,18 @@ export default function Map({
 
 	return (
 		<div ref={mapElement} className={styles.wrapper}>
-			<button
-				className={styles.downloadButton}
-				onClick={() => {
-					mapRenderer?.current?.downloadCsv?.();
-				}}
-			>
-				Download coverage data
-			</button>
+			<div className={styles.downloadButton}>
+				<Button
+					className={styles.downloadButton}
+					onClick={() => {
+						mapRenderer?.current?.downloadCsv?.();
+					}}
+					variant={'contained'}
+					size={'small'}
+				>
+					Download coverage data
+				</Button>
+			</div>
 		</div>
 	);
 }
