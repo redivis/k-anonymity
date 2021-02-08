@@ -35,7 +35,6 @@ export default class Map {
 		const height = 600;
 		const projection = getProjection(topology.bbox, width, height);
 		const layers = [];
-		d3Select('#map_svg').remove();
 		const svg = d3Select(container).append('svg').attr('id', 'map_svg').attr('width', width).attr('height', height);
 		const g = (this.g = svg.insert('g', ':first-child').attr('class', styles.layerGroup));
 

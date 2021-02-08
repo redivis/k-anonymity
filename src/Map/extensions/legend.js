@@ -28,11 +28,11 @@ export default function (map) {
 
 	const shadingGroup = g.append('g').attr('transform', 'translate(0,15)rotate(90)');
 
-	$(window).on('resize.mapLegend', () => {
+	this.resize = function () {
 		const height = g.node().getBBox().height;
 		const scale = Math.min(1, (0.6 * svg.attr('height')) / height);
 		g.attr('transform', `translate(${svg.attr('width') - LEGEND_WIDTH},${LEGEND_MARGIN_TOP})scale(${scale})`);
-	});
+	};
 
 	this.update = function (colors, title, label, domain) {
 		this.show();
@@ -121,8 +121,6 @@ export default function (map) {
 			.style('display', 'none');
 
 		shadingMarkerText = shadingGroup.append('text').attr('y', -4).style('display', 'none');
-
-		$(window).trigger('resize.mapLegend');
 	};
 
 	this.show = function () {

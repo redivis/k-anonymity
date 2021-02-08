@@ -51,6 +51,7 @@ export default function Map({
 	resolution,
 	showPoints,
 	showPopulationDensity,
+	hasDiscreteColorScale,
 	pointRadius,
 	colorScale,
 }) {
@@ -69,6 +70,7 @@ export default function Map({
 		resolution,
 		showPoints,
 		showPopulationDensity,
+		hasDiscreteColorScale,
 		pointRadius,
 		colorScale,
 	};
@@ -109,6 +111,7 @@ export default function Map({
 		resolution,
 		showPoints,
 		showPopulationDensity,
+		hasDiscreteColorScale,
 		pointRadius,
 		colorScale,
 	]);
@@ -195,6 +198,7 @@ Map.propTypes = {
 	resolution: PropTypes.string,
 	showPoints: PropTypes.bool,
 	showPopulationDensity: PropTypes.bool,
+	hasDiscreteColorScale: PropTypes.bool,
 	pointRadius: PropTypes.string,
 	colorScale: PropTypes.arrayOf(PropTypes.string),
 	options: PropTypes.object,
@@ -207,6 +211,7 @@ Map.defaultProps = {
 		coverageTravelTime: 120,
 		resolution: 1024,
 		showPopulationDensity: false,
+		hasDiscreteColorScale: false,
 		showPoints: true,
 		pointRadius: 2,
 	},

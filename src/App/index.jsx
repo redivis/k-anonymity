@@ -22,18 +22,27 @@ const MAP_TIMEOUT_MS = 1000;
 
 const DEFAULT_OWNER = 'ianmathews91';
 const DEFAULT_PARENT_ENTITY = 'geospatial_coverage';
-const DEFAULT_TABLE = 'usa';
-
-const DEFAULT_REGION = 'United States';
+const DEFAULT_TABLE = 'zambia';
+const DEFAULT_REGION = 'Zambia';
 const DEFAULT_SUBREGION = '';
-const DEFAULT_LATITUDE_INDICATOR = '';
-const DEFAULT_LONGITUDE_INDICATOR = '';
-const DEFAULT_ROADS = ['motorway', 'trunk', 'primary'];
+const DEFAULT_LATITUDE_INDICATOR = 'GPS_S';
+const DEFAULT_LONGITUDE_INDICATOR = 'GPS_E';
+
+// const DEFAULT_OWNER = '';
+// const DEFAULT_PARENT_ENTITY = '';
+// const DEFAULT_TABLE = '';
+// const DEFAULT_REGION = '';
+// const DEFAULT_SUBREGION = '';
+// const DEFAULT_LATITUDE_INDICATOR = '';
+// const DEFAULT_LONGITUDE_INDICATOR = '';
+
+const DEFAULT_ROADS = ['motorway', 'trunk', 'primary', 'secondary'];
 
 const DEFAULT_COVERAGE_TRAVEL_TIME = '120';
 const DEFAULT_RESOLUTION = '1024';
 const DEFAULT_SHOW_POINTS = true;
 const DEFAULT_SHOW_POPULATION_DENSITY = false;
+const DEFAULT_HAS_DISCRETE_COLOR_SCALE = false;
 const DEFAULT_POINT_RADIUS = '2';
 const DEFAULT_COLOR_SCALE = [];
 
@@ -231,6 +240,7 @@ export default function App({ history }) {
 	const [resolution, setResolution] = useState(DEFAULT_RESOLUTION);
 	const [showPoints, setShowPoints] = useState(DEFAULT_SHOW_POINTS);
 	const [showPopulationDensity, setShowPopulationDensity] = useState(DEFAULT_SHOW_POPULATION_DENSITY);
+	const [hasDiscreteColorScale, setHasDiscreteColorScale] = useState(DEFAULT_HAS_DISCRETE_COLOR_SCALE);
 	const [pointRadius, setPointRadius] = useState(DEFAULT_POINT_RADIUS);
 	const [colorScale, setColorScale] = useState(DEFAULT_COLOR_SCALE);
 
@@ -250,8 +260,12 @@ export default function App({ history }) {
 					</div>
 					<div className={styles.linkWrapper}>
 						<div className={styles.buttonWrapper}>
-							<Button size={'small'} href={`https://github.com/redivis/geo-coverage`} target={'_blank'}>
-								{'Github'}
+							<Button
+								size={'small'}
+								href={`https://github.com/redivis/geo-coverage/blob/main/README.md`}
+								target={'_blank'}
+							>
+								{'Documentation'}
 							</Button>
 						</div>
 						<div className={styles.buttonWrapper}>
@@ -303,6 +317,8 @@ export default function App({ history }) {
 								setShowPoints={setShowPoints}
 								showPopulationDensity={showPopulationDensity}
 								setShowPopulationDensity={setShowPopulationDensity}
+								hasDiscreteColorScale={hasDiscreteColorScale}
+								setHasDiscreteColorScale={setHasDiscreteColorScale}
 								pointRadius={pointRadius}
 								setPointRadius={setPointRadius}
 								colorScale={colorScale}
@@ -330,6 +346,7 @@ export default function App({ history }) {
 								resolution={resolution}
 								showPoints={showPoints}
 								showPopulationDensity={showPopulationDensity}
+								hasDiscreteColorScale={hasDiscreteColorScale}
 								pointRadius={pointRadius}
 								colorScale={colorScale}
 							/>

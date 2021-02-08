@@ -33,15 +33,6 @@ import roadOptions from 'helpers/roadOptions';
 
 import * as styles from './styles.css';
 
-function getRegionHeader(countryName) {
-	const countryObject = countries.find(({ name }) => name === countryName);
-	if (countryObject) {
-		return countryObject.code;
-	} else {
-		return countryName;
-	}
-}
-
 const tableReferenceRegex = /^\/tables\/([^.]+)\.([^.]+)\.([^.]+)$/i;
 function getTableReference({ uri = '', name }) {
 	const match = uri.match(tableReferenceRegex);
@@ -125,6 +116,8 @@ export default function Settings({
 	setShowPoints,
 	showPopulationDensity,
 	setShowPopulationDensity,
+	hasDiscreteColorScale,
+	setHasDiscreteColorScale,
 	pointRadius,
 	setPointRadius,
 	colorScale,
@@ -203,6 +196,10 @@ export default function Settings({
 		setShowPopulationDensity(e.target.checked);
 	}, []);
 
+	const handleSetHasDiscreteColorScale = useCallback((e) => {
+		setHasDiscreteColorScale(e.target.checked);
+	}, []);
+
 	const handleSetPointRadius = useCallback((e) => {
 		setPointRadius(e.target.value);
 	}, []);
@@ -230,7 +227,7 @@ export default function Settings({
 							onClick={() => setShowTableOptions(!showTableOptions)}
 							className={formClasses.listItem}
 						>
-							<ListItemText className={formClasses.listItemText}>{'Data table'}</ListItemText>
+							<ListItemText className={formClasses.listItemText}>{'Data'}</ListItemText>
 							{(isFetchingCollection || isFetchingTables) && (
 								<CircularProgress size={20} className={formClasses.pending} />
 							)}
@@ -252,7 +249,7 @@ export default function Settings({
 											onChange={handleSetOwner}
 											fullWidth={true}
 											variant={'outlined'}
-											placeholder={'username or organizationShortName'}
+											placeholder={'User or organization'}
 										/>
 									}
 									className={formClasses.formControlLabel}
@@ -261,12 +258,12 @@ export default function Settings({
 									control={
 										<TextField
 											name={'parentEntity'}
-											label={'Dataset/project'}
+											label={'Dataset/Project'}
 											value={parentEntity}
 											onChange={handleSetParentEntity}
 											fullWidth={true}
 											variant={'outlined'}
-											placeholder={'dataset or project identifier'}
+											placeholder={'dataset or project name'}
 										/>
 									}
 									className={formClasses.formControlLabel}
@@ -282,7 +279,7 @@ export default function Settings({
 												onChange={handleSetTable}
 												fullWidth={true}
 												variant={'outlined'}
-												placeholder={'table identifier'}
+												placeholder={'table name'}
 											>
 												{tables.map(({ uri, name }) => {
 													const tableReference = getTableReference({ uri, name });
@@ -322,12 +319,7 @@ export default function Settings({
 						>
 							<ListItemText primary={'Region'} className={formClasses.listItemText} />
 							{isFetchingMap && <CircularProgress size={20} className={formClasses.pending} />}
-							{region && (
-								<Chip
-									size={'small'}
-									label={`${getRegionHeader(region)}${subregion ? ` (${subregion})` : ''}`}
-								/>
-							)}
+							{region && <Chip size={'small'} label={`${region}${subregion ? ` (${subregion})` : ''}`} />}
 							{showRegion ? <ExpandMore edge={'end'} /> : <ExpandLess edge={'end'} />}
 						</ListItem>
 						<Collapse in={showRegion} className={formClasses.collapse}>
@@ -336,7 +328,7 @@ export default function Settings({
 									control={
 										<TextField
 											name={'region'}
-											label={'Region'}
+											label={'Country'}
 											value={region}
 											select={true}
 											onChange={handleSetRegion}
@@ -555,23 +547,34 @@ export default function Settings({
 								<FormControlLabel
 									control={
 										<Switch
-											name={'showPoints'}
-											checked={showPoints}
-											onChange={handleSetShowPoints}
-										/>
-									}
-									label={'Show points'}
-									className={formClasses.formControlLabel}
-								/>
-								<FormControlLabel
-									control={
-										<Switch
 											name={'showPopulationDensity'}
 											checked={showPopulationDensity}
 											onChange={handleSetShowPopulationDensity}
 										/>
 									}
 									label={'Show population density'}
+									className={formClasses.formControlLabel}
+								/>
+								<FormControlLabel
+									control={
+										<Switch
+											name={'hasDiscreteColorScale'}
+											checked={hasDiscreteColorScale}
+											onChange={handleSetHasDiscreteColorScale}
+										/>
+									}
+									label={'Discrete color scale'}
+									className={formClasses.formControlLabel}
+								/>
+								<FormControlLabel
+									control={
+										<Switch
+											name={'showPoints'}
+											checked={showPoints}
+											onChange={handleSetShowPoints}
+										/>
+									}
+									label={'Show points'}
 									className={formClasses.formControlLabel}
 								/>
 								<FormControlLabel
