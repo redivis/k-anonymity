@@ -1,0 +1,63 @@
+.appWrapper{
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+}
+
+.headerWrapper{
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 58px;
+    border-bottom: 2px solid #7f3b97;
+}
+
+.header{
+    display: inline-flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px;
+    margin-left: 400px;
+}
+
+.linkWrapper{
+    display: inline-flex;
+    align-items: center;
+    padding-right: 20px;
+}
+
+.buttonWrapper{
+    margin-left: 10px;
+}
+
+.bodyWrapper{
+    position: relative;
+    height: calc(100% - 58px);
+}
+
+.mapWrapper {
+    height: 100%;
+}
+
+.settings {
+    position: absolute;
+    height: 100%;
+    overflow: auto;
+    display: inline-block;
+    float: left;
+    width: 400px;
+    z-index: 1;
+    border-radius: 0 4px 4px 0;
+    background-color: white;
+}
+
+.map {
+    position: absolute;
+    height: 100%;
+    left: 400px;
+    display: inline-block;
+    float: left;
+    width: calc(100% - 400px);
+}
+
+
