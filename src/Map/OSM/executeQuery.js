@@ -9,14 +9,23 @@ const overpassApis = [
 	// 'http://overpass.osm.rambler.ru/cgi/interpreter',
 ];
 
+const pendingQueryMap = new Map();
+
 export default async function executeQuery(query) {
 	let type;
 
 	const cachedResponse = await cache.get(query);
 
 	if (cachedResponse) {
-		console.info('got cache');
 		return cachedResponse;
+	}
+
+	if (pendingQueryMap.get(query)) {
+		return new Promise((resolve, reject) => {
+			pendingQueryMap.get(query).push(resolve);
+		});
+	} else {
+		pendingQueryMap.set(query, []);
 	}
 
 	if (query.indexOf('relation') > -1) {
@@ -33,22 +42,27 @@ export default async function executeQuery(query) {
 
 	if (res.ok) {
 		const responseBody = await res.text();
+		let geojson;
 		if (responseBody.length < 1e4) {
 			console.info('received small response');
 			// console.info(query);
 			console.info('======================');
 			console.info(responseBody);
 			console.info('======================');
-			const geojson = { type: 'FeatureCollection', features: [] };
-			await cache.set(query, geojson);
-			return geojson;
+			geojson = { type: 'FeatureCollection', features: [] };
+		} else {
+			geojson = osmtogeojson(JSON.parse(responseBody));
+			geojson.features = geojson.features.filter((feature) => {
+				return feature.id.indexOf(type) > -1;
+			});
 		}
-		const geojson = osmtogeojson(JSON.parse(responseBody));
-		geojson.features = geojson.features.filter((feature) => {
-			return feature.id.indexOf(type) > -1;
-		});
-		console.log(geojson);
+
 		await cache.set(query, geojson);
+		const pendingQueries = pendingQueryMap.get(query);
+		for (const cb of pendingQueries) {
+			cb(geojson);
+		}
+		pendingQueryMap.delete(query);
 		return geojson;
 	} else {
 		const error = await res.text();

@@ -1,6 +1,7 @@
 import PropTypes from 'prop-types';
 import React, { useEffect, useState, useCallback } from 'react';
 import useTimeout from 'helpers/useTimeout';
+import { withRouter } from 'react-router-dom';
 
 import Map from '../Map';
 import Settings from '../Settings';
@@ -20,21 +21,21 @@ import * as styles from './styles.css';
 const INPUT_TIMEOUT_MS = 1000;
 const MAP_TIMEOUT_MS = 1000;
 
-const DEFAULT_OWNER = 'ianmathews91';
-const DEFAULT_PARENT_ENTITY = 'geospatial_coverage';
-const DEFAULT_TABLE = 'zambia';
+// const DEFAULT_OWNER = 'ianmathews91';
+// const DEFAULT_PARENT_ENTITY = 'geospatial_coverage';
+// const DEFAULT_TABLE = 'zambia';
 const DEFAULT_REGION = 'Zambia';
-const DEFAULT_SUBREGION = '';
-const DEFAULT_LATITUDE_INDICATOR = 'GPS_S';
-const DEFAULT_LONGITUDE_INDICATOR = 'GPS_E';
-
-// const DEFAULT_OWNER = '';
-// const DEFAULT_PARENT_ENTITY = '';
-// const DEFAULT_TABLE = '';
-// const DEFAULT_REGION = '';
 // const DEFAULT_SUBREGION = '';
-// const DEFAULT_LATITUDE_INDICATOR = '';
-// const DEFAULT_LONGITUDE_INDICATOR = '';
+// const DEFAULT_LATITUDE_INDICATOR = 'GPS_S';
+// const DEFAULT_LONGITUDE_INDICATOR = 'GPS_E';
+
+const DEFAULT_OWNER = '';
+const DEFAULT_PARENT_ENTITY = '';
+const DEFAULT_TABLE = '';
+// const DEFAULT_REGION = '';
+const DEFAULT_SUBREGION = '';
+const DEFAULT_LATITUDE_INDICATOR = '';
+const DEFAULT_LONGITUDE_INDICATOR = '';
 
 const DEFAULT_ROADS = ['motorway', 'trunk', 'primary', 'secondary'];
 
@@ -96,7 +97,7 @@ const useTitleStyles = makeStyles({
 	},
 });
 
-export default function App({ history }) {
+function App({ history }) {
 	useEffect(() => {
 		const path = localStorage.getItem('path');
 		if (path) {
@@ -364,3 +365,4 @@ export default function App({ history }) {
 		</div>
 	);
 }
+export default withRouter(App);
