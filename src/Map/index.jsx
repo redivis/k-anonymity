@@ -168,9 +168,11 @@ export default function Map({
 	// }, [updateMap]);
 
 	return (
-		<div ref={mapElement} className={styles.wrapper}>
+		<>
+			<div ref={mapElement} className={styles.wrapper} />
 			<div className={styles.downloadButton}>
 				<Button
+					style={collection && mapData ? {} : { display: 'none' }}
 					className={styles.downloadButton}
 					onClick={() => {
 						mapRenderer?.current?.downloadCsv?.();
@@ -181,7 +183,7 @@ export default function Map({
 					Download coverage data
 				</Button>
 			</div>
-		</div>
+		</>
 	);
 }
 

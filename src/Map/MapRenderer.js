@@ -11,10 +11,7 @@ export default class MapRenderer {
 		this.update(props);
 		this.collection = null;
 		this.mapData = null;
-		this.coverageTravelTime = null;
-		this.resolution = null;
-		this.showPopulationDensity = null;
-		this.hasDiscreteColorScale = null;
+		this.settings = {};
 		window.addEventListener('resize', () => {
 			this.onResize();
 		});
@@ -32,7 +29,7 @@ export default class MapRenderer {
 	}
 
 	update({ collection, mapData, options, settings }) {
-		if (collection && mapData) {
+		if (mapData) {
 			this.elem.classList.add(styles.loading);
 			if (
 				!this.map ||
@@ -46,10 +43,10 @@ export default class MapRenderer {
 			) {
 				this.collection = collection;
 				this.mapData = mapData;
-				this.coverageTravelTime = settings.coverageTravelTime;
-				this.resolution = settings.resolution;
-				this.showPopulationDensity = settings.showPopulationDensity;
-				this.hasDiscreteColorScale = settings.hasDiscreteColorScale;
+				this.settings.coverageTravelTime = settings.coverageTravelTime;
+				this.settings.resolution = settings.resolution;
+				this.settings.showPopulationDensity = settings.showPopulationDensity;
+				this.settings.hasDiscreteColorScale = settings.hasDiscreteColorScale;
 				this.elem.innerHTML = '';
 				this.map = new Map(mapData, this.elem);
 
@@ -57,12 +54,14 @@ export default class MapRenderer {
 					this.map.colorScale = this.map.colorScale.type('continuous');
 				}
 
-				this.map.bindSeries(collection, options);
-				this.map.showCoverage(
-					settings.coverageTravelTime / 60,
-					settings.resolution,
-					settings.showPopulationDensity,
-				);
+				if (collection && options.latitudeIndicator && options.longitudeIndicator) {
+					this.map.bindSeries(collection, options);
+					this.map.showCoverage(
+						settings.coverageTravelTime / 60,
+						settings.resolution,
+						settings.showPopulationDensity,
+					);
+				}
 			}
 
 			if (settings.showPoints) {
