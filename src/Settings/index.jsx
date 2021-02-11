@@ -50,6 +50,18 @@ function getTableReference({ uri = '', name }) {
 	}
 }
 
+function getSubregionOptions(region, subregion) {
+	const country = countries.find(({ name }) => name === region);
+	const subregions = [];
+	if (country) {
+		subregions.push(...country.subregions);
+	}
+	if (subregion) {
+		subregions.unshift({ name: '' });
+	}
+	return subregions;
+}
+
 const useFormStyles = makeStyles({
 	formControl: {
 		width: '100%',
@@ -153,6 +165,7 @@ export default function Settings({
 
 	const handleSetRegion = useCallback((e) => {
 		setRegion(e.target.value);
+		setSubregion('');
 	}, []);
 
 	const handleSetSubregion = useCallback((e) => {
@@ -208,6 +221,8 @@ export default function Settings({
 
 	const selectedRoadsSet = new Set(roads);
 	const useCustomRoads = region.toLowerCase() === 'united states' && !subregion;
+
+	const subregions = getSubregionOptions(region, subregion);
 
 	const [showTableOptions, setShowTableOptions] = useState(true);
 	const [showRegion, setShowRegion] = useState(true);
@@ -350,10 +365,17 @@ export default function Settings({
 											name={'subregion'}
 											label={'Subregion (optional)'}
 											value={subregion}
+											select={true}
 											onChange={handleSetSubregion}
 											fullWidth={true}
 											variant={'outlined'}
-										/>
+										>
+											{subregions.map(({ name }) => (
+												<MenuItem key={name} value={name}>
+													{name || '(deselect subregion)'}
+												</MenuItem>
+											))}
+										</TextField>
 									}
 									className={formClasses.formControlLabel}
 								/>
