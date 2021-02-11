@@ -6,7 +6,7 @@ Determine access to resources within a geographic region based on road network t
 ## Usage
 1. Upload your tabular data for visualization to Redivis. [Consult the "Creating a dataset guide" for full documentation.](https://docs.redivis.com/guides/creating-a-dataset)
     - At the least, your table should contain one column (variable) for latitude and one for longitude.
-1. Navigate to the visualizer at https://labs.redivis.com/geo-visualizer
+1. Navigate to the visualizer at https://labs.redivis.com/geo-coverage
 1. Sign in to your Redivis account by clicking the "Sign in to Redivis" button at top right
 1. Next, in the left toolbar:
     1. Specify your data by providing your username, the name of the dataset you created, and the name of the relevant table
