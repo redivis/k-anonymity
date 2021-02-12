@@ -74,14 +74,14 @@ Please open an issue or [contact us](mailto:contact@redivis.com) if you'd like y
 This tool implements a standard [cost-distance algorithm](https://desktop.arcgis.com/en/arcmap/10.3/tools/spatial-analyst-toolbox/how-the-cost-distance-tools-work.htm) to efficiently compute the area within a particular travel time from the nearest facility, utilizing geospatial and road network information from OpenStreetMap. It then overlays this coverage area with rasterized population density data from WorldPop to compute the percentage of the region's population that is within this coverage area. 
 
 Road speed estimates were determined by either the `max_speed` attribute present in the OSM data, or, when missing, by the [road's classification](https://wiki.openstreetmap.org/wiki/Key:highway), as follows in kilometers per hour:
-- trunk, motorway: 110 
-- primary: 100 
-- secondary: 80
-- tertiary: 50 
-- residential, unclassified: 30
-- off-road: 15
+- trunk, motorway: 110 kph
+- primary: 100 kph
+- secondary: 80 kph
+- tertiary: 50 kph
+- residential, unclassified: 30 kph
+- off-road: 15 kph
   
-The cost-distance algorithm is computed over a pixel grid for each country, whose largest dimension is equivalent to the setting chosen for "resolution" (default, 1024). The implementation utilizes Javascript (ECMAScript) and canvas shaders available in the web browser used to generate the visualization.
+The cost-distance algorithm is computed over a pixel grid for each country, whose largest dimension is equivalent to the setting chosen for "resolution" (default, 1024). The implementation utilizes Javascript (ECMAScript) and canvas shaders available in the web browser to generate the visualization.
 
 ### Limitations
 The outputs of this tool are estimates that utilize data that are imperfect and, in the case of the WorldPop population density data, estimates themselves. 
