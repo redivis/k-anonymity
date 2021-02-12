@@ -1,9 +1,8 @@
 import './styles.css';
-import Map from './Map';
+import LegacyMap from './LegacyMap';
 
 import * as styles from './styles.css';
-import colorScale from './helpers/colorScale';
-import * as colorbrewer from 'colorbrewer';
+import getMap from './BigQuery/getMap';
 
 export default class MapRenderer {
 	constructor(elem, props) {
@@ -36,19 +35,21 @@ export default class MapRenderer {
 				// We need to redraw if data changes or coverage settings change
 				collection !== this.collection ||
 				mapData !== this.mapData ||
-				settings.coverageTravelTime !== this.coverageTravelTime ||
-				settings.resolution !== this.resolution ||
-				settings.showPopulationDensity !== this.showPopulationDensity ||
-				settings.hasDiscreteColorScale !== this.hasDiscreteColorScale
+				settings.hideRoads !== this.settings.hideRoads ||
+				settings.coverageTravelTime !== this.settings.coverageTravelTime ||
+				settings.resolution !== this.settings.resolution ||
+				settings.showPopulationDensity !== this.settings.showPopulationDensity ||
+				settings.hasDiscreteColorScale !== this.settings.hasDiscreteColorScale
 			) {
 				this.collection = collection;
 				this.mapData = mapData;
+				this.settings.hideRoads = settings.hideRoads;
 				this.settings.coverageTravelTime = settings.coverageTravelTime;
 				this.settings.resolution = settings.resolution;
 				this.settings.showPopulationDensity = settings.showPopulationDensity;
 				this.settings.hasDiscreteColorScale = settings.hasDiscreteColorScale;
 				this.elem.innerHTML = '';
-				this.map = new Map(mapData, this.elem);
+				this.map = new LegacyMap(mapData, settings, this.elem);
 
 				if (!settings.hasDiscreteColorScale) {
 					this.map.colorScale = this.map.colorScale.type('continuous');

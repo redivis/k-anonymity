@@ -1,6 +1,6 @@
 import { scaleLinear as d3ScaleLinear, min as d3Min, max as d3Max } from 'd3';
 import * as styles from '../styles.css';
-import { onPointHoverCallbacks, onPointClickCallbacks } from '../Map';
+import { onPointHoverCallbacks, onPointClickCallbacks } from '../index';
 
 export function show(showFiltered) {
 	this.svg.select('g').select(`.${styles.points}`).style('display', 'block');

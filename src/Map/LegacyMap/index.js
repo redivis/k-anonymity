@@ -8,7 +8,6 @@ import zoom from './helpers/zoom';
 import bindTooltips from './helpers/bindTooltips';
 import cleanPolygon from './helpers/cleanPolygon';
 import getGreatCircle from './helpers/getGreatCircle';
-import getGeoJSONBBox from './helpers/getGeoJSONBBox';
 import getProjection from './helpers/getProjection';
 import Legend from './extensions/legend';
 import scale from './extensions/scale';
@@ -23,18 +22,11 @@ export const onFeatureHoverCallbacks = new WeakMap();
 export const onPointClickCallbacks = new WeakMap();
 export const onPointHoverCallbacks = new WeakMap();
 
-let OSM_MODE = false;
-
 export default class Map {
-	constructor(topology, container) {
-		OSM_MODE = !!topology.bbox;
-
-		topology.bbox = getGeoJSONBBox(topojson.feature(topology, topology.objects[Object.keys(topology.objects)[0]]));
-
+	constructor({ boundary, regions, roads, raster, bbox }, { hideRoads }, container) {
 		const width = 800;
 		const height = 600;
-		const projection = getProjection(topology.bbox, width, height);
-		const layers = [];
+		const projection = getProjection(bbox, width, height);
 		const svg = d3Select(container).append('svg').attr('id', 'map_svg').attr('width', width).attr('height', height);
 		const g = (this.g = svg.insert('g', ':first-child').attr('class', styles.layerGroup));
 
@@ -46,20 +38,15 @@ export default class Map {
 		onPointClickCallbacks.set(this, []);
 		onPointHoverCallbacks.set(this, []);
 
-		this.topology = topology;
 		this.colorScale = colorScale([].concat(colorbrewer.RdYlBu[9]).reverse());
-		this.rasters = topology.rasters;
+		this.raster = raster;
 		this.projection = projection;
-		this.info = topology.info || {};
-		this.resizeRatio = 1;
 		this.svg = svg;
-		this.layers = layers;
-		this.boundary = null;
-		this.roads = [];
+		this.roads = roads;
 		this.regions = [];
 		this.width = width;
 		this.height = height;
-		this.bbox = topology.bbox;
+		this.bbox = bbox;
 		this.kilometersPerPixel =
 			getGreatCircle(
 				(this.bbox[3] + this.bbox[1]) / 2,
@@ -75,66 +62,76 @@ export default class Map {
 		scale(this);
 		bindTooltips(this);
 
-		let layer;
+		boundary.layerName = 'boundary';
+		regions.layerName = 'regions';
+		roads.layerName = 'roads';
+		this.boundary = boundary;
+		this.regions = regions;
 
-		if (topology.objects) {
-			for (const k in topology.objects) {
-				// if (!topology.objects[k].geometries || !topology.objects[k].geometries.length) continue;
-				if (k.indexOf('road') > -1) {
-					layer = topojson.mesh(topology, topology.objects[k]);
-				} else {
-					layer = topojson.feature(topology, topology.objects[k]);
-				}
-				layers.push(layer);
-				layer.layerName = k;
-				if (k === 'boundary') {
-					this.boundary = layer;
-					layer.layerType = 'boundary';
-				} else if (k.indexOf('road') > -1) {
-					this.roads.push(layer);
-					layer.layerType = 'road';
-				} else {
-					this.regions.push(layer);
-					layer.layerType = 'region';
-				}
-			}
-			if (layers.length === 1 && layer.layerType !== 'region') {
-				layer.layerType = 'region';
-				this.regions.push(layer);
-			}
-		} else {
-			layers.push(topology);
-			topology.layerType = 'region';
-			this.boundary = topology;
+		this.layers = [boundary, regions];
+		if (!hideRoads) {
+			this.layers.push(roads);
 		}
 
-		layers.sort((a, b) => {
-			if (a.layerType === 'boundary') return -1;
-			if (a.layerType === 'road') return 1;
-			if (b.layerType === 'boundary') return 1;
-			if (b.layerType === 'road') return -1;
-			return a.layerName.localeCompare(b.layerName);
-		});
-
-		if (OSM_MODE === false) {
-			layers.forEach((layer) => {
-				if (!layer.features) return;
-				layer.features = layer.features.filter((feature) => feature.geometry);
-			});
-		}
-
-		layers.forEach((layer) => {
+		// let layer;
+		//
+		// if (topology.objects) {
+		// 	for (const k in topology.objects) {
+		// 		// if (!topology.objects[k].geometries || !topology.objects[k].geometries.length) continue;
+		// 		if (k.indexOf('road') > -1) {
+		// 			layer = topojson.mesh(topology, topology.objects[k]);
+		// 		} else {
+		// 			layer = topojson.feature(topology, topology.objects[k]);
+		// 		}
+		// 		layers.push(layer);
+		// 		layer.layerName = k;
+		// 		if (k === 'boundary') {
+		// 			this.boundary = layer;
+		// 			layer.layerType = 'boundary';
+		// 		} else if (k.indexOf('road') > -1) {
+		// 			this.roads.push(layer);
+		// 			layer.layerType = 'road';
+		// 		} else {
+		// 			this.regions.push(layer);
+		// 			layer.layerType = 'region';
+		// 		}
+		// 	}
+		// 	if (layers.length === 1 && layer.layerType !== 'region') {
+		// 		layer.layerType = 'region';
+		// 		this.regions.push(layer);
+		// 	}
+		// } else {
+		// 	layers.push(topology);
+		// 	topology.layerType = 'region';
+		// 	this.boundary = topology;
+		// }
+		//
+		// layers.sort((a, b) => {
+		// 	if (a.layerType === 'boundary') return -1;
+		// 	if (a.layerType === 'road') return 1;
+		// 	if (b.layerType === 'boundary') return 1;
+		// 	if (b.layerType === 'road') return -1;
+		// 	return a.layerName.localeCompare(b.layerName);
+		// });
+		//
+		this.layers.forEach((layer) => {
 			if (layer.type !== 'FeatureCollection') return;
-			layer.featuresMap = {};
 			layer.features.forEach((feature, i) => {
-				feature.originalGeometry = feature.geometry;
-				feature.id = this.getFeatureId(layer, feature);
-				layer.featuresMap[feature.id] = feature;
 				if (feature.geometry.type === 'Polygon') {
-					cleanPolygon(feature.geometry.coordinates, OSM_MODE);
+					cleanPolygon(feature.geometry.coordinates, true);
 				} else if (feature.geometry.type === 'MultiPolygon') {
 					feature.geometry.coordinates.forEach((rings) => {
-						cleanPolygon(rings, OSM_MODE);
+						cleanPolygon(rings, true);
+					});
+				} else if (feature.geometry.type === 'GeometryCollection') {
+					feature.geometry.geometries.forEach((geometry) => {
+						if (geometry.type === 'Polygon') {
+							cleanPolygon(geometry.coordinates, true);
+						} else if (geometry.type === 'MultiPolygon') {
+							geometry.coordinates.forEach((rings) => {
+								cleanPolygon(rings, true);
+							});
+						}
 					});
 				}
 			});

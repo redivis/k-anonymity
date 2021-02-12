@@ -4,7 +4,7 @@ export default function () {
 		return null;
 	}
 	authResponse = JSON.parse(authResponse);
-	if (authResponse.expires_at < Date.now() / 1000) {
+	if (authResponse.expires_at < Date.now() / 1000 + 300) {
 		localStorage.removeItem('authorization');
 		return null;
 	}

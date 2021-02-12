@@ -19,7 +19,6 @@ const roadSpeeds = {
 	us: 100,
 };
 const OFF_ROAD_SPEED = 15;
-const MAX_SPEED = 120;
 const canvasMap = new WeakMap();
 const popCanvasMap = new WeakMap();
 const projectionMap = new WeakMap();
@@ -87,46 +86,28 @@ export function show(maxDistance, resolution, showPopDensity) {
 		image.remove();
 	};
 
-	image.src = this.rasters[0].dataURL;
+	image.src = this.raster.dataURL;
 
 	function afterImageLoad() {
 		path.context(roadsContext);
 
-		const roadOrder = [
-			'motorway',
-			'trunk',
-			'primary',
-			'us',
-			'secondary',
-			'tertiary',
-			'unclassified',
-			'residential',
-			'service',
-			'other',
-		];
-
-		// Sort in reverse order; we want to draw faster roads on top of slower
-		this.roads.sort((a, b) => {
-			let aIndex;
-			let bIndex;
-			for (let i = 0; i < roadOrder.length; i++) {
-				if (a.layerName.indexOf(roadOrder[i]) > -1) {
-					aIndex = i;
-					break;
-				}
+		let MAX_SPEED = 0;
+		this.roads.features.forEach((road) => {
+			if (!road.properties.speed) {
+				road.properties.speed = roadSpeeds[road.properties.type];
 			}
-			for (let i = 0; i < roadOrder.length; i++) {
-				if (b.layerName.indexOf(roadOrder[i]) > -1) {
-					bIndex = i;
-					break;
-				}
+			if (road.properties.speed > MAX_SPEED) {
+				MAX_SPEED = road.properties.speed;
 			}
-
-			return bIndex - aIndex;
 		});
 
-		this.roads.forEach((road) => {
-			const speed = Math.round((roadSpeeds[road.layerName.split('_')[1]] / MAX_SPEED) * 255);
+		// Sort in reverse order; we want to draw faster roads on top of slower
+		this.roads.features.sort((a, b) => {
+			return a.properties.speed - b.properties.speed;
+		});
+
+		this.roads.features.forEach((road) => {
+			const speed = Math.round((road.properties.speed / MAX_SPEED) * 255);
 			roadsContext.strokeStyle = `rgb(0,${speed},0)`;
 			path(road);
 			roadsContext.stroke();

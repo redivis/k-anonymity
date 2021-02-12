@@ -1,27 +1,18 @@
 import * as cache from '../../helpers/cache';
 
-export default async function (bbox, rasterNames) {
-	rasterNames = rasterNames || [];
-	if (!(rasterNames instanceof Array)) rasterNames = [rasterNames];
-
-	const query = { bbox, rasterNames };
-
+export default async function (bbox, name) {
+	const query = { bbox, name };
 	const cachedResult = await cache.get(query);
 
 	if (cachedResult) {
-		// return cachedResult;
+		return cachedResult;
 	}
 
-	const rasters = [];
-	for (const name of rasterNames) {
-		const raster = await clipRaster(bbox, name);
-		console.log(raster);
+	const raster = await clipRaster(bbox, name);
 
-		rasters.push(raster);
-	}
+	await cache.set(query, raster);
 
-	await cache.set(query, rasters);
-	return rasters;
+	return raster;
 }
 
 async function clipRaster(bbox, rasterName) {
@@ -37,9 +28,9 @@ async function clipRaster(bbox, rasterName) {
 			const longitudePixelsPerDegree = image.width / 360;
 
 			let x = (bbox[0] + 180) * longitudePixelsPerDegree;
-			let y = (90 - bbox[3]) * latitudePixelsPerDegree;
+			let y = (90 - bbox[1]) * latitudePixelsPerDegree;
 			let width = (bbox[2] - bbox[0]) * longitudePixelsPerDegree;
-			let height = (bbox[3] - bbox[1]) * latitudePixelsPerDegree;
+			let height = (bbox[1] - bbox[3]) * latitudePixelsPerDegree;
 
 			x = Math.floor(x);
 			y = Math.floor(y);

@@ -56,14 +56,8 @@ export default function (collection, geoData) {
 		coordinates.push(obj);
 	});
 
-	let layer = this.layers.filter((layer) => {
-		return layer.layerType === 'region';
-	})[0];
-	if (!layer) {
-		layer = this.layers.filter((layer) => {
-			return layer.layerType === 'boundary';
-		})[0];
-	}
+	let layer = this.regions || this.boundary;
+
 	const featureIdMap = {};
 	const features = layer ? layer.features : [];
 
@@ -126,50 +120,50 @@ export default function (collection, geoData) {
 		}
 	});
 
-	if (latitudeIndicator && longitudeIndicator) {
-		const sortedLong = [].concat(coordinates).sort((a, b) => {
-			return a.long - b.long;
-		});
-		const sortedLat = [].concat(coordinates).sort((a, b) => {
-			return a.lat - b.lat;
-		});
-		features.forEach((feature) => {
-			feature.matched = false;
-			//TODO: Smarter algorithm that handles holes
-			let bbox = feature.geometry.coordinates[0].bbox;
-			feature.bbox = bbox;
-			let validX = {};
-			let validY = {};
-			if (feature.geometry.type === 'MultiPolygon') {
-				feature.bbox = feature.geometry.coordinates[0][0].bbox;
-				if (!feature.bbox) return;
-				feature.geometry.coordinates.forEach((polygon) => {
-					bbox = polygon[0].bbox;
-					const tempX = findPoints([bbox[0], bbox[2]], sortedLong, isInHorizontalBox);
-					const tempY = findPoints([bbox[3], bbox[1]], sortedLat, isInVerticalBox);
-					for (const index in tempX) {
-						validX[index] = true;
-					}
-					for (const index in tempY) {
-						validY[index] = true;
-					}
-				});
-			} else {
-				if (!feature.bbox) return;
-
-				validX = findPoints([bbox[0], bbox[2]], sortedLong, isInHorizontalBox);
-				validY = findPoints([bbox[3], bbox[1]], sortedLat, isInVerticalBox);
-			}
-
-			let found = false;
-			for (const i in validX) {
-				if (validY[i]) {
-					coordinates[i].features.push(feature);
-					found = true;
-				}
-			}
-		});
-	}
+	// if (latitudeIndicator && longitudeIndicator) {
+	// 	const sortedLong = [].concat(coordinates).sort((a, b) => {
+	// 		return a.long - b.long;
+	// 	});
+	// 	const sortedLat = [].concat(coordinates).sort((a, b) => {
+	// 		return a.lat - b.lat;
+	// 	});
+	// 	features.forEach((feature) => {
+	// 		feature.matched = false;
+	// 		//TODO: Smarter algorithm that handles holes
+	// 		let bbox = feature.geometry.coordinates[0].bbox;
+	// 		feature.bbox = bbox;
+	// 		let validX = {};
+	// 		let validY = {};
+	// 		if (feature.geometry.type === 'MultiPolygon') {
+	// 			feature.bbox = feature.geometry.coordinates[0][0].bbox;
+	// 			if (!feature.bbox) return;
+	// 			feature.geometry.coordinates.forEach((polygon) => {
+	// 				bbox = polygon[0].bbox;
+	// 				const tempX = findPoints([bbox[0], bbox[2]], sortedLong, isInHorizontalBox);
+	// 				const tempY = findPoints([bbox[3], bbox[1]], sortedLat, isInVerticalBox);
+	// 				for (const index in tempX) {
+	// 					validX[index] = true;
+	// 				}
+	// 				for (const index in tempY) {
+	// 					validY[index] = true;
+	// 				}
+	// 			});
+	// 		} else {
+	// 			if (!feature.bbox) return;
+	//
+	// 			validX = findPoints([bbox[0], bbox[2]], sortedLong, isInHorizontalBox);
+	// 			validY = findPoints([bbox[3], bbox[1]], sortedLat, isInVerticalBox);
+	// 		}
+	//
+	// 		let found = false;
+	// 		for (const i in validX) {
+	// 			if (validY[i]) {
+	// 				coordinates[i].features.push(feature);
+	// 				found = true;
+	// 			}
+	// 		}
+	// 	});
+	// }
 	const fuzzySet = new FuzzySet(ids);
 
 	coordinates.forEach((point) => {

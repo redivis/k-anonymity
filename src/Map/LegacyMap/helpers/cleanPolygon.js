@@ -1,10 +1,9 @@
-export default function(rings, OSM_MODE) {
+export default function (rings, fixWindingOrder) {
 	const isInterior = rings.length > 1;
 
 	rings.forEach((ring) => {
 		getBBox(ring);
 	});
-	if (!OSM_MODE) return;
 	rings.sort((a, b) => {
 		if (a.bbox[0] < b.bbox[0] && a.bbox[2] > b.bbox[2]) {
 			return -1;

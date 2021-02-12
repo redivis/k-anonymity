@@ -9,6 +9,5 @@ export default function ({ width, height, minRatio }) {
 
 	this.svg.attr('width', width).attr('height', height);
 
-	this.resizeRatio = minRatio;
 	this.legend.resize();
 }
