@@ -1,25 +1,23 @@
 import * as d3 from 'd3-selection';
 import * as styles from '../styles.css';
 
-import { onFeatureClickCallbacks, onFeatureHoverCallbacks } from '../Map';
+import { onFeatureClickCallbacks, onFeatureHoverCallbacks } from '../index';
 
 export default function (map, g) {
 	const layers = g.selectAll(`.${styles.layer}`).data(map.layers, (d) => d.layerName);
-
 	map.layersSelection = layers;
 	map.featuresSelection = {};
-
 	layers
 		.enter()
 		.insert('g', ':last-child')
-		.attr('class', (d) => `${styles.layer} ${styles[d.layerType]}`)
+		.attr('class', (d) => `${styles.layer} ${styles[d.layerName]}`)
 		.attr('data-layer', (d) => d.layerName)
 		.merge(layers)
 		.each(function (layer) {
 			const featuresData = layer.features || [layer];
 			const features = d3
 				.select(this)
-				.selectAll(`path.${styles.region}`)
+				.selectAll(`path.${styles.regions}`)
 				.data(featuresData, (feature) => feature.id);
 			layer.elem = this;
 
@@ -28,7 +26,7 @@ export default function (map, g) {
 			features
 				.enter()
 				.append('path')
-				.attr('class', styles.region)
+				.attr('class', styles.regions)
 				.attr('data-id', (d) => d.id)
 				.attr('d', function (feature) {
 					feature.elem = this;
@@ -55,7 +53,7 @@ export default function (map, g) {
 
 			// features.enter()
 			// 	.merge(features)
-			// 	.selectAll('.region')
+			// 	.selectAll('.regions')
 			// 	.attr('d', function (feature, i) {
 			// 		feature.elem = this;
 			// 		console.log(i)

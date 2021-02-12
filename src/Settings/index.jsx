@@ -124,6 +124,8 @@ export default function Settings({
 	setCoverageTravelTime,
 	resolution,
 	setResolution,
+	hideRoads,
+	setHideRoads,
 	showPoints,
 	setShowPoints,
 	showPopulationDensity,
@@ -205,6 +207,10 @@ export default function Settings({
 		setShowPoints(e.target.checked);
 	}, []);
 
+	const handleSetHideRoads = useCallback((e) => {
+		setHideRoads(e.target.checked);
+	}, []);
+
 	const handleSetShowPopulationDensity = useCallback((e) => {
 		setShowPopulationDensity(e.target.checked);
 	}, []);
@@ -220,7 +226,6 @@ export default function Settings({
 	const formClasses = useFormStyles();
 
 	const selectedRoadsSet = new Set(roads);
-	const useCustomRoads = region.toLowerCase() === 'united states' && !subregion;
 
 	const subregions = getSubregionOptions(region, subregion);
 
@@ -477,25 +482,18 @@ export default function Settings({
 							<ListItemText primary={'Roads'} className={formClasses.listItemText} />
 							<Tooltip
 								title={
-									useCustomRoads ? (
-										`The ${region} map uses a custom roads configuration`
-									) : (
-										<React.Fragment>
-											<a
-												href={'https://wiki.openstreetmap.org/wiki/Key:highway'}
-												target={'_blank'}
-											>
-												{'Learn more'}
-											</a>
-											<span>{' about OpenStreetMap roads'}</span>
-										</React.Fragment>
-									)
+									<React.Fragment>
+										<a href={'https://wiki.openstreetmap.org/wiki/Key:highway'} target={'_blank'}>
+											{'Learn more'}
+										</a>
+										<span>{' about OpenStreetMap roads'}</span>
+									</React.Fragment>
 								}
 								interactive={true}
 								placement={'bottom-start'}
 								arrow={true}
 							>
-								<Chip size={'small'} label={useCustomRoads ? 'Custom' : selectedRoadsSet.size} />
+								<Chip size={'small'} label={selectedRoadsSet.size} />
 							</Tooltip>
 							{showRoads ? <ExpandMore edge={'end'} /> : <ExpandLess edge={'end'} />}
 						</ListItem>
@@ -504,13 +502,11 @@ export default function Settings({
 								{roadOptions.map(({ label, name }) => (
 									<FormControlLabel
 										key={name}
-										disabled={useCustomRoads}
 										control={
 											<Checkbox
 												key={name}
 												name={name}
-												checked={!useCustomRoads && selectedRoadsSet.has(name)}
-												indeterminate={useCustomRoads}
+												checked={selectedRoadsSet.has(name)}
 												color={'primary'}
 												onChange={handleSetRoads}
 											/>
@@ -562,6 +558,7 @@ export default function Settings({
 											</FormHelperText>
 											<FormControlLabel control={<Radio />} value={'1024'} label={'1024'} />
 											<FormControlLabel control={<Radio />} value={'2048'} label={'2048'} />
+											<FormControlLabel control={<Radio />} value={'3072'} label={'3072'} />
 										</RadioGroup>
 									}
 									className={formClasses.formControlLabel}
@@ -586,6 +583,13 @@ export default function Settings({
 										/>
 									}
 									label={'Discrete color scale'}
+									className={formClasses.formControlLabel}
+								/>
+								<FormControlLabel
+									control={
+										<Switch name={'hideRoads'} checked={hideRoads} onChange={handleSetHideRoads} />
+									}
+									label={'Hide roads (better performance)'}
 									className={formClasses.formControlLabel}
 								/>
 								<FormControlLabel
@@ -643,6 +647,8 @@ Settings.propTypes = {
 	setCoverageTravelTime: PropTypes.func,
 	resolution: PropTypes.string,
 	setResolution: PropTypes.func,
+	hideRoads: PropTypes.bool,
+	setHideRoads: PropTypes.func,
 	showPoints: PropTypes.bool,
 	setShowPoints: PropTypes.func,
 	showPopulationDensity: PropTypes.bool,

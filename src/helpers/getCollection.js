@@ -1,10 +1,11 @@
 import retryableFetch from './retryableFetch';
 import { getCredentials, login, logout } from './auth';
+import * as cache from './cache';
 
 export default async function (tableReference) {
 	let token = getCredentials();
 	if (!token) {
-		throw new Error('Not logged in');
+		token = 'AAAAfg42tjQZmGywe+aAJAHEwSmUTI1X'; // Can only access public data
 	}
 	let tableResponse = await retryableFetch(`https://redivis.com/api/v1/tables/${tableReference}`, {
 		headers: {
@@ -23,6 +24,17 @@ export default async function (tableReference) {
 	}
 	if (tableResponse.numBytes > 1e7 || tableResponse.numRows > 1e4) {
 		throw new Error(`Can only fetch tables that are less than or equal to 10,000 records and 10MB`);
+	}
+	if (tableResponse.accessLevel === 'overview' || tableResponse.accessLevel === 'metadata') {
+		throw new Error(
+			`You must have data access to this table. Current access level is "${tableResponse.accessLevel}"`,
+		);
+	}
+
+	const cachedResponse = await cache.get(`${tableReference}_${tableResponse.hash}`);
+	if (cachedResponse) {
+		const { variables, rows } = cachedResponse;
+		return new Collection(variables, rows);
 	}
 
 	let variablesResponse = await retryableFetch(
@@ -59,6 +71,7 @@ export default async function (tableReference) {
 	}
 	rowsResponse = await rowsResponse.text();
 	const rows = rowsResponse.split('\n').map((row) => JSON.parse(row));
+	await cache.set(`${tableReference}_${tableResponse.hash}`, { variables, rows });
 	return new Collection(variables, rows);
 }
 

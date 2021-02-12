@@ -13464,6 +13464,16 @@ for (const region of regions) {
 const countries = [];
 
 for (const [name, object] of countryMap) {
+	const subregionSet = new Set();
+	object.subregions = object.subregions
+		.filter(({ name }) => {
+			if (subregionSet.has(name)) {
+				return false;
+			}
+			subregionSet.add(name);
+			return true;
+		})
+		.sort((a, b) => a.name.localeCompare(b.name));
 	countries.push(object);
 }
 

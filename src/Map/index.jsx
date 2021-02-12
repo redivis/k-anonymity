@@ -49,6 +49,7 @@ export default function Map({
 	roads,
 	coverageTravelTime,
 	resolution,
+	hideRoads,
 	showPoints,
 	showPopulationDensity,
 	hasDiscreteColorScale,
@@ -68,6 +69,7 @@ export default function Map({
 	const settings = {
 		coverageTravelTime,
 		resolution,
+		hideRoads,
 		showPoints,
 		showPopulationDensity,
 		hasDiscreteColorScale,
@@ -109,6 +111,7 @@ export default function Map({
 		roads,
 		coverageTravelTime,
 		resolution,
+		hideRoads,
 		showPoints,
 		showPopulationDensity,
 		hasDiscreteColorScale,
