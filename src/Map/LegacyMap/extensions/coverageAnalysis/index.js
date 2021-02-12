@@ -16,7 +16,6 @@ const roadSpeeds = {
 	residential: 30,
 	service: 30,
 	other: 20,
-	us: 100,
 };
 const OFF_ROAD_SPEED = 15;
 const canvasMap = new WeakMap();
