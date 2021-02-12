@@ -14,22 +14,22 @@ This tool takes tabular data of geocoded points (lat/long) to determine the popu
 
 To get started, follow the steps below:
 
-### 1. (Optional) Upload your data to Redivis
+#### 1. Upload your data to Redivis (optional)
 At the least, your table should contain one column (variable) for latitude and one for longitude. [Consult the "Creating a dataset guide" for full documentation.](https://docs.redivis.com/guides/creating-a-dataset)
 
 You can also skip this step and visualize data in the [demo geo-coverage dataset](https://redivis.com/Demo/datasets/1913).
 
-### 2. Authenticate your account
+#### 2. Authenticate your account
 If you're utilizing non-public data, sign in to your Redivis account by clicking the "Sign in to Redivis" button at top right.
 
-### 3. Specify your data 
+#### 3. Specify your data 
 Specify your data by providing your username, the name of the dataset you created, and the name of the relevant table. You can reference any table that you have access to, including those owned by other users/organizations or tables created in a project. [Read the full documentation for referencing tables on Redivis.](https://apidocs.redivis.com/referencing-resources)
 
 Next, choose the country within which to perform the coverage analysis, optionally specifying a subregion within that country. For example, to perform an analysis of California, you should choose "United States" as the country and specify "California" as the subregion.
 
 Finally, specify the variables in your table that correspond to the latitude/longitude of the observations in your data.
 
-### 4. Customize your analysis:
+#### 4. Customize your analysis
 This tool provides multiple mechanisms to further customize your analysis. You can select additional road layers for a more robust analysis, or modify the travel time to see how the population coverage changes. To highlight population centers without coverage, toggle the "Show population density" setting.
 
 Note that highly detailed roads and/or tables with many observations may impact performance; you can toggle the visibility of roads and points to improve rendering speed. Additionally, you can modify the "resolution" of your analysis - higher resolutions may better avoid pixel rounding errors, and should be considered to be more accurate, though will be slower to render.
