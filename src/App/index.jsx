@@ -264,7 +264,7 @@ function App({ history }) {
 						<div className={styles.buttonWrapper}>
 							<Button
 								size={'small'}
-								href={`https://github.com/redivis/geo-coverage/blob/main/README.md`}
+								href={`https://github.com/redivis/geo-coverage#readme`}
 								target={'_blank'}
 							>
 								{'Documentation'}
