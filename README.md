@@ -57,6 +57,7 @@ WorldPop, https://www.worldpop.org. (2010) Population Density, Uconstrained indi
 ```
 
 ### Prior publications
+- [Carrillo-Villaseñor et al, 2021](https://link.springer.com/article/10.1007/s00268-021-05975-y) Access to Essential Surgical Care in Chiapas, Mexico: A System-Wide Geospatial Analysis
 - [Jarman et al, 2019](https://jamanetwork.com/journals/jamasurgery/fullarticle/2738046) Validation of Zip Code–Based Estimates of Ambulance Driving Distance to Control for Access to Care in Emergency Surgery Research
 - [Cartwright et al, 2018](https://www.jmir.org/2018/5/e186/) Identifying National Availability of Abortion Care and Distance From Major US Cities: Systematic Online Search
 - [Punchak et al, 2018](https://www.sciencedirect.com/science/article/abs/pii/S187887501830069X) Neurosurgical Care: Availability and Access in Low-Income and Middle-Income Countries
