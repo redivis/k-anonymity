@@ -50,9 +50,9 @@ export default async function (queryInfo) {
 				const properties = {};
 				if (speed) {
 					properties.speed = parseInt(speed);
-				} else {
-					properties.type = road.type;
 				}
+				properties.type = road.type;
+
 				roadTypesMap.set(key, {
 					type: 'Feature',
 					properties,
@@ -78,9 +78,9 @@ export default async function (queryInfo) {
 		bbox = [bbox[0], bbox[3], bbox[2], bbox[1]];
 
 		const raster = await mapRasterLoader(bbox, 'population_density');
-		console.log('boundary', JSON.stringify(boundary).length, boundary);
-		console.log('regions', JSON.stringify(regions).length, regions);
-		console.log('roads', JSON.stringify(roads).length, roads);
+		// console.log('boundary', JSON.stringify(boundary).length, boundary);
+		// console.log('regions', JSON.stringify(regions).length, regions);
+		// console.log('roads', JSON.stringify(roads).length, roads);
 		return {
 			boundary,
 			regions,

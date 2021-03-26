@@ -14,7 +14,6 @@ import { grey } from '@material-ui/core/colors';
 import { getCredentials, login, logout } from 'helpers/auth';
 import getTables from 'helpers/getTables';
 import getCollection from 'helpers/getCollection';
-import getOSMMap from '../Map/OSM/getMap';
 import getBigQueryMap from '../Map/BigQuery/getMap';
 
 import * as styles from './styles.css';
@@ -27,23 +26,25 @@ const DEFAULT_PARENT_ENTITY = 'geospatial_coverage_analysis';
 const DEFAULT_TABLE = 'california_hospitals';
 const DEFAULT_REGION = 'United States';
 const DEFAULT_SUBREGION = 'California';
-// const DEFAULT_LATITUDE_INDICATOR = 'LATITUDE';
-// const DEFAULT_LONGITUDE_INDICATOR = 'LONGITUDE';
-const DEFAULT_ROADS = ['motorway', 'trunk', 'primary'];
-
-// const DEFAULT_OWNER = '';
-// const DEFAULT_PARENT_ENTITY = '';
-// const DEFAULT_TABLE = '';
-// const DEFAULT_REGION = '';
-// const DEFAULT_SUBREGION = '';
 const DEFAULT_LATITUDE_INDICATOR = '';
 const DEFAULT_LONGITUDE_INDICATOR = '';
-// const DEFAULT_ROADS = ['motorway', 'trunk', 'primary', 'secondary'];
+const DEFAULT_ROADS = ['motorway', 'trunk', 'primary'];
+
+// For testing
+// const DEFAULT_OWNER = 'ianmathews91';
+// const DEFAULT_PARENT_ENTITY = 'geospatial_coverage';
+// const DEFAULT_TABLE = 'zambia';
+// const DEFAULT_REGION = 'Zambia';
+// const DEFAULT_SUBREGION = '';
+// const DEFAULT_LATITUDE_INDICATOR = 'GPS_S';
+// const DEFAULT_LONGITUDE_INDICATOR = 'GPS_E';
+// const DEFAULT_ROADS = ['motorway', 'trunk', 'primary', 'secondary', 'tertiary'];
 
 const DEFAULT_COVERAGE_TRAVEL_TIME = '120';
 const DEFAULT_RESOLUTION = '1024';
 const DEFAULT_SHOW_POINTS = true;
 const DEFAULT_HIDE_ROADS = false;
+const DEFAULT_USE_OSM_ROAD_SPEED = true;
 const DEFAULT_SHOW_POPULATION_DENSITY = false;
 const DEFAULT_HAS_DISCRETE_COLOR_SCALE = false;
 const DEFAULT_POINT_RADIUS = '2';
@@ -240,6 +241,7 @@ function App({ history }) {
 	const [coverageTravelTime, setCoverageTravelTime] = useState(DEFAULT_COVERAGE_TRAVEL_TIME);
 	const [resolution, setResolution] = useState(DEFAULT_RESOLUTION);
 	const [hideRoads, setHideRoads] = useState(DEFAULT_HIDE_ROADS);
+	const [useOsmRoadSpeed, setUseOsmRoadSpeed] = useState(DEFAULT_USE_OSM_ROAD_SPEED);
 	const [showPoints, setShowPoints] = useState(DEFAULT_SHOW_POINTS);
 	const [showPopulationDensity, setShowPopulationDensity] = useState(DEFAULT_SHOW_POPULATION_DENSITY);
 	const [hasDiscreteColorScale, setHasDiscreteColorScale] = useState(DEFAULT_HAS_DISCRETE_COLOR_SCALE);
@@ -316,8 +318,10 @@ function App({ history }) {
 								resolution={resolution}
 								setResolution={setResolution}
 								hideRoads={hideRoads}
+								useOsmRoadSpeed={useOsmRoadSpeed}
 								showPoints={showPoints}
 								setHideRoads={setHideRoads}
+								setUseOsmRoadSpeed={setUseOsmRoadSpeed}
 								setShowPoints={setShowPoints}
 								showPopulationDensity={showPopulationDensity}
 								setShowPopulationDensity={setShowPopulationDensity}
@@ -349,6 +353,7 @@ function App({ history }) {
 								coverageTravelTime={coverageTravelTime}
 								resolution={resolution}
 								hideRoads={hideRoads}
+								useOsmRoadSpeed={useOsmRoadSpeed}
 								showPoints={showPoints}
 								showPopulationDensity={showPopulationDensity}
 								hasDiscreteColorScale={hasDiscreteColorScale}

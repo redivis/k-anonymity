@@ -126,6 +126,8 @@ export default function Settings({
 	setResolution,
 	hideRoads,
 	setHideRoads,
+	useOsmRoadSpeed,
+	setUseOsmRoadSpeed,
 	showPoints,
 	setShowPoints,
 	showPopulationDensity,
@@ -209,6 +211,10 @@ export default function Settings({
 
 	const handleSetHideRoads = useCallback((e) => {
 		setHideRoads(e.target.checked);
+	}, []);
+
+	const handleSetUseOsmRoadSpeed = useCallback((e) => {
+		setUseOsmRoadSpeed(e.target.checked);
 	}, []);
 
 	const handleSetShowPopulationDensity = useCallback((e) => {
@@ -595,6 +601,17 @@ export default function Settings({
 								<FormControlLabel
 									control={
 										<Switch
+											name={'useOsmRoadSpeed'}
+											checked={useOsmRoadSpeed}
+											onChange={handleSetUseOsmRoadSpeed}
+										/>
+									}
+									label={'Use OSM road speeds'}
+									className={formClasses.formControlLabel}
+								/>
+								<FormControlLabel
+									control={
+										<Switch
 											name={'showPoints'}
 											checked={showPoints}
 											onChange={handleSetShowPoints}
@@ -649,6 +666,8 @@ Settings.propTypes = {
 	setResolution: PropTypes.func,
 	hideRoads: PropTypes.bool,
 	setHideRoads: PropTypes.func,
+	useOsmRoadSpeed: PropTypes.bool,
+	setUseOsmRoadSpeed: PropTypes.func,
 	showPoints: PropTypes.bool,
 	setShowPoints: PropTypes.func,
 	showPopulationDensity: PropTypes.bool,

@@ -23,7 +23,7 @@ export const onPointClickCallbacks = new WeakMap();
 export const onPointHoverCallbacks = new WeakMap();
 
 export default class Map {
-	constructor({ boundary, regions, roads, raster, bbox }, { hideRoads }, container) {
+	constructor({ boundary, regions, roads, raster, bbox }, { hideRoads, useOsmRoadSpeed }, container) {
 		const width = 800;
 		const height = 600;
 		const projection = getProjection(bbox, width, height);
@@ -45,15 +45,16 @@ export default class Map {
 		this.roads = roads;
 		this.regions = [];
 		this.width = width;
+		this.useOsmRoadSpeed = useOsmRoadSpeed;
 		this.height = height;
 		this.bbox = bbox;
-		this.kilometersPerPixel =
-			getGreatCircle(
-				(this.bbox[3] + this.bbox[1]) / 2,
-				this.bbox[0],
-				(this.bbox[3] + this.bbox[1]) / 2,
-				this.bbox[2],
-			) / width;
+		this.widthKilometers = getGreatCircle(
+			(this.bbox[3] + this.bbox[1]) / 2,
+			this.bbox[0],
+			(this.bbox[3] + this.bbox[1]) / 2,
+			this.bbox[2],
+		);
+
 		this.defs = svg.append('defs');
 		this.legend = new Legend(this);
 		this.path = d3GeoPath().projection(projection);

@@ -2,11 +2,9 @@ import { scaleLinear, axisTop, event as d3Event, zoomIdentity } from 'd3';
 import * as styles from '../styles.css';
 
 export default function (map) {
-	if (map.isUSA) return;
-
 	const svg = map.svg;
 	const PX_R = 200;
-	const kmDistance = map.kilometersPerPixel * PX_R;
+	const kmDistance = (map.widthKilometers / map.width) * PX_R;
 	const xUpRange = [0, 200];
 
 	const distanceScale = scaleLinear().domain([0, kmDistance]).range(xUpRange);

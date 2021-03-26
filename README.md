@@ -74,7 +74,7 @@ Please open an issue or [contact us](mailto:contact@redivis.com) if you'd like y
 ## Methodology
 This tool implements a standard [cost-distance algorithm](https://desktop.arcgis.com/en/arcmap/10.3/tools/spatial-analyst-toolbox/how-the-cost-distance-tools-work.htm) to efficiently compute the area within a particular travel time from the nearest facility, utilizing geospatial and road network information from OpenStreetMap. It then overlays this coverage area with rasterized population density data from WorldPop to compute the percentage of the region's population that is within this coverage area. 
 
-Road speed estimates were determined by either the `max_speed` attribute present in the OSM data, or, when missing, by the [road's classification](https://wiki.openstreetmap.org/wiki/Key:highway), as follows in kilometers per hour:
+If the setting "Use OSM road speeds" is turned on (the default), road speeds will first be based on the value for the `max_speed` attribute on the OSM data. However, this attribute is not always present - in these cases, or when the "Use OSM road speeds" setting is off, speed will be determined by the [road's classification](https://wiki.openstreetmap.org/wiki/Key:highway), as follows in kilometers per hour:
 - trunk, motorway: 110 kph
 - primary: 100 kph
 - secondary: 80 kph
@@ -82,6 +82,8 @@ Road speed estimates were determined by either the `max_speed` attribute present
 - residential, unclassified: 30 kph
 - off-road: 15 kph
   
+You can manually change these settings by running this tool locally (see "Local development" below) and modifying the `roadSpeeds` variable in `src/Map/LegacyMap/coverageAnalysis/index.js`
+
 The cost-distance algorithm is computed over a pixel grid for each country, whose largest dimension is equivalent to the setting chosen for "resolution" (default, 1024). The implementation utilizes Javascript (ECMAScript) and canvas shaders available in the web browser to generate the visualization.
 
 ### Limitations
@@ -99,6 +101,7 @@ Please file an issue in this repository to report a bug or request a new feature
 
 ### Local development
 - clone this repository
-- `npm start`
+- make sure [Node.js](https://nodejs.org) is installed on your computer
+- navigate to the cloned directory in a terminal, and run `npm start`
 - open http://localhost:8080
 - To deploy, merge changes to the `main` branch. This will automatically trigger a Github action to build assets and push to `gh-pages`
