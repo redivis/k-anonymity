@@ -2,7 +2,7 @@ import './styles.css';
 import LegacyMap from './LegacyMap';
 
 import * as styles from './styles.css';
-import getMap from './BigQuery/getMap';
+import { set } from '../helpers/cache';
 
 export default class MapRenderer {
 	constructor(elem, props) {
@@ -36,6 +36,7 @@ export default class MapRenderer {
 				collection !== this.collection ||
 				mapData !== this.mapData ||
 				settings.hideRoads !== this.settings.hideRoads ||
+				settings.useOsmRoadSpeed !== this.settings.useOsmRoadSpeed ||
 				settings.coverageTravelTime !== this.settings.coverageTravelTime ||
 				settings.resolution !== this.settings.resolution ||
 				settings.showPopulationDensity !== this.settings.showPopulationDensity ||
@@ -46,6 +47,7 @@ export default class MapRenderer {
 				this.settings.hideRoads = settings.hideRoads;
 				this.settings.coverageTravelTime = settings.coverageTravelTime;
 				this.settings.resolution = settings.resolution;
+				this.settings.useOsmRoadSpeed = settings.useOsmRoadSpeed;
 				this.settings.showPopulationDensity = settings.showPopulationDensity;
 				this.settings.hasDiscreteColorScale = settings.hasDiscreteColorScale;
 				this.elem.innerHTML = '';

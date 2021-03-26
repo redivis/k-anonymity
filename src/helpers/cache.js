@@ -1,6 +1,8 @@
 import * as localforage from 'localforage';
 localforage.config({});
 
+const cacheBuster = require('../../package.json').version;
+
 export async function set(key, val) {
 	key = normalizeKey(key);
 	return localforage.setItem(key, val);
@@ -27,7 +29,7 @@ function normalizeKey(key) {
 	if (key.length > 100) {
 		key = hashString(key);
 	}
-	return key;
+	return `v${cacheBuster}_${key}`;
 }
 
 function hashString(val) {

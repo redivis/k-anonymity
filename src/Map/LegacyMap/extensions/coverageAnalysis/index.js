@@ -26,8 +26,6 @@ const maxDistanceMap = new WeakMap();
 export function show(maxDistance, resolution, showPopDensity) {
 	resolution = parseInt(resolution, 10);
 
-	// maxDistance = 100;
-
 	this.hideCoverage();
 	coverageShownMap.set(this, true);
 
@@ -35,8 +33,9 @@ export function show(maxDistance, resolution, showPopDensity) {
 	const g = this.svg.select(`.${styles.layerGroup}`);
 	const mapWidth = g.select(`.${styles.boundary}`).node().getBBox().width;
 	const mapHeight = g.select(`.${styles.boundary}`).node().getBBox().height;
+	const useOsmRoadSpeed = this.useOsmRoadSpeed;
 	const width = resolution;
-	const kmPerPixel = (this.kilometersPerPixel * this.width) / width;
+	const kmPerPixel = this.widthKilometers / resolution;
 	const height = (resolution * mapHeight) / mapWidth;
 
 	const roadsContext = canvas.getContext('2d');
@@ -92,7 +91,7 @@ export function show(maxDistance, resolution, showPopDensity) {
 
 		let MAX_SPEED = 0;
 		this.roads.features.forEach((road) => {
-			if (!road.properties.speed) {
+			if (!road.properties.speed || !useOsmRoadSpeed) {
 				road.properties.speed = roadSpeeds[road.properties.type];
 			}
 			if (road.properties.speed > MAX_SPEED) {
@@ -106,8 +105,10 @@ export function show(maxDistance, resolution, showPopDensity) {
 		});
 
 		this.roads.features.forEach((road) => {
-			const speed = Math.round((road.properties.speed / MAX_SPEED) * 255);
-			roadsContext.strokeStyle = `rgb(0,${speed},0)`;
+			const speed = Math.round((road.properties.speed / MAX_SPEED) * 767);
+			roadsContext.strokeStyle = `rgba(${Math.floor(speed / 3) + (speed % 3)},${Math.floor(
+				speed / 3,
+			)},${Math.floor(speed / 3)})`;
 			path(road);
 			roadsContext.stroke();
 		});
@@ -126,13 +127,13 @@ export function show(maxDistance, resolution, showPopDensity) {
 				costRaster[row] = [];
 				sourceRaster[row] = [];
 			}
-			if (imageData[i + 1] > 0) {
-				costRaster[row][n] = kmPerPixel / ((imageData[i + 1] * MAX_SPEED) / 255);
+			if (imageData[i] > 0) {
+				const speed = ((imageData[i] + imageData[i + 1] + imageData[i + 2]) / 767) * MAX_SPEED;
+				costRaster[row][n] = kmPerPixel / speed;
 			} else {
 				costRaster[row][n] = kmPerPixel / OFF_ROAD_SPEED;
 			}
 		}
-
 		[].concat(this.points, this.unboundPoints).forEach((point) => {
 			if (point.serie.isFiltered) return;
 
@@ -150,6 +151,9 @@ export function show(maxDistance, resolution, showPopDensity) {
 		let totalPop = 0;
 		let coveredPop = 0;
 		let color;
+
+		// Cache for performance
+		const maxDistanceColor = colorScale(maxDistance);
 
 		for (let row = 0, col = 0, i = 0, length = imageData.length; i < length; i += 4, col++) {
 			if (col === canvas.width) {
@@ -178,7 +182,7 @@ export function show(maxDistance, resolution, showPopDensity) {
 				imageData[i + 2] = color.b;
 				coveredPop += popImageData[i];
 			} else {
-				color = colorScale(maxDistance);
+				color = maxDistanceColor;
 				imageData[i] = color.r;
 				imageData[i + 1] = color.g;
 				imageData[i + 2] = color.b;
