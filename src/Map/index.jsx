@@ -48,6 +48,7 @@ export default function Map({
 	longitudeIndicator,
 	roads,
 	coverageTravelTime,
+	colorScaleBucketCount,
 	resolution,
 	hideRoads,
 	useOsmRoadSpeed,
@@ -69,6 +70,7 @@ export default function Map({
 	};
 	const settings = {
 		coverageTravelTime,
+		colorScaleBucketCount,
 		resolution,
 		hideRoads,
 		useOsmRoadSpeed,
@@ -112,6 +114,7 @@ export default function Map({
 		longitudeIndicator,
 		roads,
 		coverageTravelTime,
+		colorScaleBucketCount,
 		resolution,
 		hideRoads,
 		useOsmRoadSpeed,
@@ -203,6 +206,7 @@ Map.propTypes = {
 	roads: PropTypes.arrayOf(PropTypes.string),
 	mapState: PropTypes.object,
 	coverageTravelTime: PropTypes.string,
+	colorScaleBucketCount: PropTypes.string,
 	resolution: PropTypes.string,
 	showPoints: PropTypes.bool,
 	showPopulationDensity: PropTypes.bool,
@@ -217,6 +221,7 @@ Map.defaultProps = {
 	options: testOptions[TEST_COUNTRY],
 	settings: {
 		coverageTravelTime: 120,
+		colorScaleBucketCount: 9,
 		resolution: 1024,
 		showPopulationDensity: false,
 		hasDiscreteColorScale: false,

@@ -122,6 +122,8 @@ export default function Settings({
 	setRoads,
 	coverageTravelTime,
 	setCoverageTravelTime,
+	colorScaleBucketCount,
+	setColorScaleBucketCount,
 	resolution,
 	setResolution,
 	hideRoads,
@@ -199,6 +201,10 @@ export default function Settings({
 
 	const handleSetCoverageTravelTime = useCallback((e) => {
 		setCoverageTravelTime(e.target.value);
+	}, []);
+
+	const handleSetColorScaleBucketCount = useCallback((e) => {
+		setColorScaleBucketCount(e.target.value);
 	}, []);
 
 	const handleSetResolution = useCallback((e) => {
@@ -571,6 +577,19 @@ export default function Settings({
 								/>
 								<FormControlLabel
 									control={
+										<TextField
+											name={'colorScaleBucketCount'}
+											label={'Color scale buckets'}
+											value={colorScaleBucketCount}
+											onChange={handleSetColorScaleBucketCount}
+											fullWidth={true}
+											variant={'outlined'}
+										/>
+									}
+									className={formClasses.formControlLabel}
+								/>
+								<FormControlLabel
+									control={
 										<Switch
 											name={'showPopulationDensity'}
 											checked={showPopulationDensity}
@@ -662,6 +681,8 @@ Settings.propTypes = {
 	setRoads: PropTypes.func,
 	coverageTravelTime: PropTypes.string,
 	setCoverageTravelTime: PropTypes.func,
+	colorScaleBucketCount: PropTypes.string,
+	setColorScaleBucketCount: PropTypes.func,
 	resolution: PropTypes.string,
 	setResolution: PropTypes.func,
 	hideRoads: PropTypes.bool,

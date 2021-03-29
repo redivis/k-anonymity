@@ -38,6 +38,7 @@ export default class MapRenderer {
 				settings.hideRoads !== this.settings.hideRoads ||
 				settings.useOsmRoadSpeed !== this.settings.useOsmRoadSpeed ||
 				settings.coverageTravelTime !== this.settings.coverageTravelTime ||
+				settings.colorScaleBucketCount !== this.settings.colorScaleBucketCount ||
 				settings.resolution !== this.settings.resolution ||
 				settings.showPopulationDensity !== this.settings.showPopulationDensity ||
 				settings.hasDiscreteColorScale !== this.settings.hasDiscreteColorScale
@@ -46,6 +47,7 @@ export default class MapRenderer {
 				this.mapData = mapData;
 				this.settings.hideRoads = settings.hideRoads;
 				this.settings.coverageTravelTime = settings.coverageTravelTime;
+				this.settings.colorScaleBucketCount = settings.colorScaleBucketCount;
 				this.settings.resolution = settings.resolution;
 				this.settings.useOsmRoadSpeed = settings.useOsmRoadSpeed;
 				this.settings.showPopulationDensity = settings.showPopulationDensity;
