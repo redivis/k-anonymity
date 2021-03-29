@@ -47,6 +47,7 @@ const DEFAULT_HIDE_ROADS = false;
 const DEFAULT_USE_OSM_ROAD_SPEED = true;
 const DEFAULT_SHOW_POPULATION_DENSITY = false;
 const DEFAULT_HAS_DISCRETE_COLOR_SCALE = false;
+const DEFAULT_COLOR_SCALE_BUCKET_COUNT = 9;
 const DEFAULT_POINT_RADIUS = '2';
 const DEFAULT_COLOR_SCALE = [];
 
@@ -239,6 +240,8 @@ function App({ history }) {
 	}, [fetchMapData]);
 
 	const [coverageTravelTime, setCoverageTravelTime] = useState(DEFAULT_COVERAGE_TRAVEL_TIME);
+	const [colorScaleBucketCount, setColorScaleBucketCount] = useState(DEFAULT_COLOR_SCALE_BUCKET_COUNT);
+
 	const [resolution, setResolution] = useState(DEFAULT_RESOLUTION);
 	const [hideRoads, setHideRoads] = useState(DEFAULT_HIDE_ROADS);
 	const [useOsmRoadSpeed, setUseOsmRoadSpeed] = useState(DEFAULT_USE_OSM_ROAD_SPEED);
@@ -315,6 +318,8 @@ function App({ history }) {
 								setRoads={setRoads}
 								coverageTravelTime={coverageTravelTime}
 								setCoverageTravelTime={setCoverageTravelTime}
+								colorScaleBucketCount={colorScaleBucketCount}
+								setColorScaleBucketCount={setColorScaleBucketCount}
 								resolution={resolution}
 								setResolution={setResolution}
 								hideRoads={hideRoads}
@@ -351,6 +356,7 @@ function App({ history }) {
 								longitudeIndicator={longitudeIndicator}
 								roads={roads}
 								coverageTravelTime={coverageTravelTime}
+								colorScaleBucketCount={colorScaleBucketCount}
 								resolution={resolution}
 								hideRoads={hideRoads}
 								useOsmRoadSpeed={useOsmRoadSpeed}

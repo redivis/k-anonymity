@@ -23,7 +23,11 @@ export const onPointClickCallbacks = new WeakMap();
 export const onPointHoverCallbacks = new WeakMap();
 
 export default class Map {
-	constructor({ boundary, regions, roads, raster, bbox }, { hideRoads, useOsmRoadSpeed }, container) {
+	constructor(
+		{ boundary, regions, roads, raster, bbox },
+		{ hideRoads, useOsmRoadSpeed, colorScaleBucketCount = 9 },
+		container,
+	) {
 		const width = 800;
 		const height = 600;
 		const projection = getProjection(bbox, width, height);
@@ -38,7 +42,9 @@ export default class Map {
 		onPointClickCallbacks.set(this, []);
 		onPointHoverCallbacks.set(this, []);
 
-		this.colorScale = colorScale([].concat(colorbrewer.RdYlBu[9]).reverse());
+		this.colorScale = colorScale(
+			[].concat(colorbrewer.RdYlBu[Math.min(Math.max(colorScaleBucketCount, 3), 9)]).reverse(),
+		);
 		this.raster = raster;
 		this.projection = projection;
 		this.svg = svg;
