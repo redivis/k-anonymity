@@ -128,8 +128,9 @@ export function show(maxDistance, resolution, showPopDensity) {
 				sourceRaster[row] = [];
 			}
 			if (imageData[i] > 0) {
-				const speed = ((imageData[i] + imageData[i + 1] + imageData[i + 2]) / 767) * MAX_SPEED;
-				costRaster[row][n] = kmPerPixel / speed;
+				// const speed = ((imageData[i] + imageData[i + 1] + imageData[i + 2]) / 767) * MAX_SPEED;
+				costRaster[row][n] =
+					kmPerPixel / (((imageData[i] + imageData[i + 1] + imageData[i + 2]) / 767) * MAX_SPEED);
 			} else {
 				costRaster[row][n] = kmPerPixel / OFF_ROAD_SPEED;
 			}
@@ -214,12 +215,16 @@ export function show(maxDistance, resolution, showPopDensity) {
 		this.defs
 			.append('pattern')
 			.attr('id', `coverageImage${0}`)
-			.attr('width', 1)
-			.attr('height', 1)
+			.attr('width', '100%')
+			.attr('height', '100%')
+			.attr('patternUnits', 'objectBoundingBox')
+			.attr('viewBox', `0 0 ${canvas.width} ${canvas.height}`)
+			// .attr('x', bbox.x)
+			// .attr('y', bbox.y)
 			.attr('class', 'coverageImage')
 			.append('image')
-			.attr('width', bbox.width)
-			.attr('height', bbox.height)
+			.attr('width', canvas.width)
+			.attr('height', canvas.height)
 			.attr('xlink:href', canvas.toDataURL());
 
 		g.selectAll('path').style('fill', function () {
