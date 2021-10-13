@@ -17,12 +17,18 @@ import getCollection from 'helpers/getCollection';
 import getBigQueryMap from '../Map/BigQuery/getMap';
 
 import * as styles from './styles.css';
+import {
+	query,
+	authorize,
+	deauthorize,
+	isAuthorized,
+} from 'redivis';
 
 const INPUT_TIMEOUT_MS = 1000;
 const MAP_TIMEOUT_MS = 1000;
 
-const DEFAULT_OWNER = 'Demo';
-const DEFAULT_PARENT_ENTITY = 'geospatial_coverage_analysis';
+const DEFAULT_OWNER = 'StanfordPHS';
+const DEFAULT_PARENT_ENTITY = null;
 const DEFAULT_TABLE = 'california_hospitals';
 const DEFAULT_REGION = 'United States';
 const DEFAULT_SUBREGION = 'California';
@@ -110,6 +116,30 @@ function App({ history }) {
 		}
 	}, []);
 
+	const [isUserAuthorized, setIsUserAuthorized] = useState(false);
+
+	const handleSetIsUserAuthorized = useCallback(
+		async () => {
+			const nextIsUserAuthorized = await isAuthorized();
+			setIsUserAuthorized(nextIsUserAuthorized);
+		},
+		[],
+	);
+
+	useEffect(() => {
+		handleSetIsUserAuthorized();
+	}, []);
+
+	const handleAuthorize = useCallback(async () => {
+		await authorize();
+		handleSetIsUserAuthorized();
+	}, [authorize]);
+
+	const handleUnauthorize = useCallback(async () => {
+		await deauthorize()
+		handleSetIsUserAuthorized();
+	}, []);
+
 	const accessToken = getCredentials();
 
 	const handleSignIn = useCallback(async () => {
@@ -127,8 +157,12 @@ function App({ history }) {
 	}, []);
 
 	const [owner, setOwner] = useState(DEFAULT_OWNER);
+	const [dataset, setDataset] = useState(null);
+	const [version, setVersion] = useState(null);
 	const [parentEntity, setParentEntity] = useState(DEFAULT_PARENT_ENTITY);
-	const [table, setTable] = useState(DEFAULT_TABLE);
+	const [table, setTable] = useState(null);
+	const [variable, setVariable] = useState(null);
+
 
 	const [region, setRegion] = useState(DEFAULT_REGION);
 	const [subregion, setSubregion] = useState(DEFAULT_SUBREGION);
@@ -136,39 +170,20 @@ function App({ history }) {
 	const [longitudeIndicator, setLongitudeIndicator] = useState(DEFAULT_LONGITUDE_INDICATOR);
 	const [roads, setRoads] = useState(DEFAULT_ROADS);
 
+	const [datasets, setDatasets] = useState([]);
+	const [versions, setVersions] = useState([]);
 	const [tables, setTables] = useState([]);
+	const [variables, setVariables] = useState([]);
+
+	const [selectedQuasiIdentifiers, setSelectedQuasiIdentifiers] = useState([]);
+	const [variablesByTableName, setVariablesByTableName] = useState({});
+
 	const [isFetchingTables, setIsFetchingTables] = useState(false);
 	const [tablesError, setTablesError] = useState(null);
 
 	const [collection, setCollection] = useState(null);
 	const [isFetchingCollection, setIsFetchingCollection] = useState(false);
 	const [collectionError, setCollectionError] = useState(null);
-
-	const fetchTables = useCallback(async () => {
-		if (owner && parentEntity) {
-			try {
-				setIsFetchingTables(true);
-				setTablesError(null);
-				const tables = await getTables(`${owner}.${parentEntity}`);
-				setTables(tables);
-			} catch (e) {
-				setTablesError(e);
-				setTables([]);
-			} finally {
-				setIsFetchingTables(false);
-			}
-		}
-	}, [owner, parentEntity]);
-
-	const [setTablesTimeout, clearTablesTimeout] = useTimeout(fetchTables, INPUT_TIMEOUT_MS);
-
-	useEffect(() => {
-		clearTablesTimeout();
-		setTablesTimeout();
-		return () => {
-			clearTablesTimeout();
-		};
-	}, [fetchTables]);
 
 	const setLatAndLongIndicators = useCallback((collection) => {
 		const { latitude, longitude } = guessLatAndLongIndicators(collection);
@@ -242,6 +257,12 @@ function App({ history }) {
 	const [coverageTravelTime, setCoverageTravelTime] = useState(DEFAULT_COVERAGE_TRAVEL_TIME);
 	const [colorScaleBucketCount, setColorScaleBucketCount] = useState(DEFAULT_COLOR_SCALE_BUCKET_COUNT);
 
+	const handleCalculateRisk = useCallback(async () => {
+		const riskQuery = `SELECT 1+1`;
+		const response = await query(riskQuery).listRows();
+		console.log('response');
+	}, [])
+
 	const [resolution, setResolution] = useState(DEFAULT_RESOLUTION);
 	const [hideRoads, setHideRoads] = useState(DEFAULT_HIDE_ROADS);
 	const [useOsmRoadSpeed, setUseOsmRoadSpeed] = useState(DEFAULT_USE_OSM_ROAD_SPEED);
@@ -277,7 +298,12 @@ function App({ history }) {
 						</div>
 						<div className={styles.buttonWrapper}>
 							{!accessToken && (
-								<Button size={'small'} variant={'contained'} color={'primary'} onClick={handleSignIn}>
+								<Button
+									size={'small'}
+									variant={'contained'}
+									color={'primary'}
+									onClick={handleAuthorize}
+								>
 									{'Sign in to Redivis'}
 								</Button>
 							)}
@@ -297,15 +323,39 @@ function App({ history }) {
 		return (
 			<ThemeProvider theme={theme}>
 				<div className={styles.bodyWrapper}>
-					<div className={styles.mapWrapper}>
+					<div className={styles.descriptionWrapper}>
+						<p>{`This tool can help measure the re-identification risk of the primary entity in this dataset. It will determine to what degree individuals are anonymized based on their uniqueness within the dataset.`}</p>
+					</div>
+					<div className={styles.graphWrapper}>
 						<div className={styles.settings}>
 							<Settings
+								isUserAuthorized={isUserAuthorized}
+								onAuthorize={handleAuthorize}
+								onDeauthorize={handleUnauthorize}
 								owner={owner}
 								setOwner={setOwner}
+								dataset={dataset}
+								setDataset={setDataset}
+								datasets={datasets}
+								setDatasets={setDatasets}
+								version={version}
+								setVersion={setVersion}
+								versions={versions}
+								setVersions={setVersions}
 								parentEntity={parentEntity}
 								setParentEntity={setParentEntity}
 								table={table}
 								setTable={setTable}
+								tables={tables}
+								setTables={setTables}
+								variable={variable}
+								setVariable={setVariable}
+								variables={variables}
+								setVariables={setVariables}
+								selectedQuasiIdentifiers={selectedQuasiIdentifiers}
+								setSelectedQuasiIdentifiers={setSelectedQuasiIdentifiers}
+								variablesByTableName={variablesByTableName}
+								setVariablesByTableName={setVariablesByTableName}
 								region={region}
 								setRegion={setRegion}
 								subregion={subregion}
@@ -336,7 +386,6 @@ function App({ history }) {
 								setPointRadius={setPointRadius}
 								colorScale={colorScale}
 								setColorScale={setColorScale}
-								tables={tables}
 								isFetchingTables={isFetchingTables}
 								tablesError={tablesError}
 								collection={collection}
@@ -346,7 +395,7 @@ function App({ history }) {
 								mapDataError={mapDataError}
 							/>
 						</div>
-						<div className={styles.map}>
+						<div className={styles.graph}>
 							<Map
 								collection={collection}
 								mapData={mapData}
