@@ -34,6 +34,8 @@ import listVersions from 'helpers/listVersions';
 import listTables from 'helpers/listTables';
 import listVariablesByTableName from 'helpers/listVariablesByTableName';
 
+import tableHasVariable from 'helpers/tableHasVariable';
+
 import { makeStyles } from '@material-ui/core/styles';
 
 import * as styles from './styles.css';
@@ -98,23 +100,19 @@ const useFormStyles = makeStyles({
 	},
 });
 
-function tableHasVariable(variable, table, variablesByTableName){
-	return variablesByTableName[table.name].some(({ name }) => name === variable.name);
-}
-
 function formatQuasiIdentifiers(variable, table, tables, variablesByTableName){
 	let quasiIdentifiersByVariableName = {};
 
-	for (let i = 0; i < tables.length; i++){
-		const datasetTable = tables[i];
-		if (!tableHasVariable(variable, datasetTable, variablesByTableName)) continue;
+	for (let datasetTable of tables){
+		if (variable && !tableHasVariable(variable, datasetTable, variablesByTableName)) continue;
 
-		for (const variable of variablesByTableName[datasetTable.name]){
-			const existingQuasiIdentifier = quasiIdentifiersByVariableName[variable.name]
+		for (const datasetTableVariable of (variablesByTableName[datasetTable.name] || [])){
+			if (variable && datasetTableVariable.name === variable.name) continue;
+			const existingQuasiIdentifier = quasiIdentifiersByVariableName[datasetTableVariable.name]
 			if (existingQuasiIdentifier){
 				existingQuasiIdentifier.tables.push(datasetTable);
 			} else {
-				quasiIdentifiersByVariableName[variable.name] = { variable, tables: [datasetTable] }
+				quasiIdentifiersByVariableName[datasetTableVariable.name] = { variable: datasetTableVariable, tables: [datasetTable] }
 			}
 		}
 	}
@@ -148,6 +146,7 @@ export default function Settings({
 	setSelectedQuasiIdentifiers,
 	variablesByTableName,
 	setVariablesByTableName,
+	onCalculateRisk,
 	parentEntity,
 	setParentEntity,
 	region,
@@ -203,6 +202,8 @@ export default function Settings({
 	const [filteredQuasiIdentifiers, setFilteredQuasiIdentifiers] = useState([])
 	const [isQuasiIdentifiersOpen, setIsQuasiIdentifiersOpen] = useState(false);
 	const isQuasiIdentifiersLoading = isQuasiIdentifiersOpen && filteredQuasiIdentifiers.length === 0;
+
+	const [isCalculatingRisk, setIsCalculatingRisk] = useState(false);
 
 	useEffect(() => {
 		let active = true;
@@ -324,11 +325,22 @@ export default function Settings({
 		} else {
 			setFilteredQuasiIdentifiers([]);
 		}
-	}, [variable]);
+	}, [variablesByTableName, variable]);
 
 	const handleClearAll = useCallback(() => {
 		setOwner('');
 	}, [])
+
+	const handleCalculateRisk = useCallback(async () => {
+		setIsCalculatingRisk(true);
+		try {
+			await onCalculateRisk();
+		} catch (e){
+			console.error(e);
+		} finally {
+			setIsCalculatingRisk(false);
+		}
+	}, [onCalculateRisk])
 
 	return (
 		<div className={styles.sideBarWrapper}>
@@ -337,8 +349,8 @@ export default function Settings({
 					{isUserAuthorized ?
 						(
 							<div>
-								<div className={styles.header}>{'Authenticated as'}</div>
-								<div className={styles.text}>{'username'}</div>
+								<div className={styles.sectionHeader}>{'Authenticated as'}</div>
+								<div className={styles.sectionText}>{'username'}</div>
 								<Button className={styles.linkButton} onClick={onDeauthorize}>{'Remove authentication'}</Button>
 							</div>
 						)
@@ -551,6 +563,9 @@ export default function Settings({
 					</div>
 					<div className={styles.sectionWrapper}>
 						<Button onClick={handleClearAll}>{'Clear all'}</Button>
+					</div>
+					<div className={styles.sectionWrapper}>
+						<Button loading={isCalculatingRisk} onClick={handleCalculateRisk}>{'Calculate re-identification risk'}</Button>
 					</div>
 				</React.Fragment>}
 			</div>

@@ -3,10 +3,10 @@ import React, { useEffect, useState, useCallback } from 'react';
 import useTimeout from 'helpers/useTimeout';
 import { withRouter } from 'react-router-dom';
 
-import Map from '../Map';
+import Graph from '../Graph';
 import Settings from '../Settings';
 import Typography from '@material-ui/core/Typography';
-import Button from '@material-ui/core/Button';
+import Button from '@mui/material/Button';
 
 import { makeStyles, createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
 import { grey } from '@material-ui/core/colors';
@@ -14,7 +14,12 @@ import { grey } from '@material-ui/core/colors';
 import { getCredentials, login, logout } from 'helpers/auth';
 import getTables from 'helpers/getTables';
 import getCollection from 'helpers/getCollection';
-import getBigQueryMap from '../Map/BigQuery/getMap';
+import getBigQueryMap from '../Graph/BigQuery/getMap';
+
+import computeRisk from 'helpers/computeRisk';
+
+import headerSVG from 'assets/header.svg';
+import labsSVG from 'assets/labs.svg';
 
 import * as styles from './styles.css';
 import {
@@ -27,7 +32,7 @@ import {
 const INPUT_TIMEOUT_MS = 1000;
 const MAP_TIMEOUT_MS = 1000;
 
-const DEFAULT_OWNER = 'StanfordPHS';
+const DEFAULT_OWNER = 'Demo';
 const DEFAULT_PARENT_ENTITY = null;
 const DEFAULT_TABLE = 'california_hospitals';
 const DEFAULT_REGION = 'United States';
@@ -178,6 +183,8 @@ function App({ history }) {
 	const [selectedQuasiIdentifiers, setSelectedQuasiIdentifiers] = useState([]);
 	const [variablesByTableName, setVariablesByTableName] = useState({});
 
+	const [queryResponse, setQueryResponse] = useState(null);
+
 	const [isFetchingTables, setIsFetchingTables] = useState(false);
 	const [tablesError, setTablesError] = useState(null);
 
@@ -258,10 +265,10 @@ function App({ history }) {
 	const [colorScaleBucketCount, setColorScaleBucketCount] = useState(DEFAULT_COLOR_SCALE_BUCKET_COUNT);
 
 	const handleCalculateRisk = useCallback(async () => {
-		const riskQuery = `SELECT 1+1`;
-		const response = await query(riskQuery).listRows();
-		console.log('response');
-	}, [])
+		const nextQueryResponse = await computeRisk(variable, selectedQuasiIdentifiers, variablesByTableName, table, tables, dataset, owner);
+		setQueryResponse(nextQueryResponse);
+		console.log('response', nextQueryResponse);
+	}, [variable, selectedQuasiIdentifiers, variablesByTableName, table, tables, dataset, owner])
 
 	const [resolution, setResolution] = useState(DEFAULT_RESOLUTION);
 	const [hideRoads, setHideRoads] = useState(DEFAULT_HIDE_ROADS);
@@ -279,39 +286,29 @@ function App({ history }) {
 			<div className={styles.headerWrapper}>
 				<div className={styles.header}>
 					<div className={styles.titleWrapper}>
-						<Typography className={titleClasses.root} component={'h4'}>
-							{'Redivis Labs'}
-						</Typography>
-						<Typography className={titleClasses.subtitle} component={'h4'}>
-							{'Geospatial coverage analyzer'}
-						</Typography>
+						<div className={styles.headerLogo} style={{ height: 33, width: 133, backgroundImage: `url(data:image/svg+xml;base64,${btoa(headerSVG)})` }} />
+						<div style={{ height: 30, width: 70, backgroundImage: `url(data:image/svg+xml;base64,${btoa(labsSVG)})` }} />
+						<div className={styles.divider} />
+						<span>{'K-anonymity computation'}</span>
 					</div>
 					<div className={styles.linkWrapper}>
 						<div className={styles.buttonWrapper}>
 							<Button
 								size={'small'}
-								href={`https://github.com/redivis/geo-coverage#readme`}
+								href={`https://github.com/redivis/k-anonymity`}
 								target={'_blank'}
 							>
-								{'Documentation'}
+								{'Github'}
 							</Button>
 						</div>
 						<div className={styles.buttonWrapper}>
-							{!accessToken && (
-								<Button
-									size={'small'}
-									variant={'contained'}
-									color={'primary'}
-									onClick={handleAuthorize}
-								>
-									{'Sign in to Redivis'}
-								</Button>
-							)}
-							{!!accessToken && (
-								<Button size={'small'} onClick={handleSignOut}>
-									{'Sign out'}
-								</Button>
-							)}
+							<Button
+								size={'small'}
+								href={`https://redivis.com`}
+								target={'_blank'}
+							>
+								{'Redivis'}
+							</Button>
 						</div>
 					</div>
 				</div>
@@ -323,9 +320,6 @@ function App({ history }) {
 		return (
 			<ThemeProvider theme={theme}>
 				<div className={styles.bodyWrapper}>
-					<div className={styles.descriptionWrapper}>
-						<p>{`This tool can help measure the re-identification risk of the primary entity in this dataset. It will determine to what degree individuals are anonymized based on their uniqueness within the dataset.`}</p>
-					</div>
 					<div className={styles.graphWrapper}>
 						<div className={styles.settings}>
 							<Settings
@@ -356,6 +350,7 @@ function App({ history }) {
 								setSelectedQuasiIdentifiers={setSelectedQuasiIdentifiers}
 								variablesByTableName={variablesByTableName}
 								setVariablesByTableName={setVariablesByTableName}
+								onCalculateRisk={handleCalculateRisk}
 								region={region}
 								setRegion={setRegion}
 								subregion={subregion}
@@ -396,24 +391,10 @@ function App({ history }) {
 							/>
 						</div>
 						<div className={styles.graph}>
-							<Map
-								collection={collection}
-								mapData={mapData}
-								region={region}
-								subregion={subregion}
-								latitudeIndicator={latitudeIndicator}
-								longitudeIndicator={longitudeIndicator}
-								roads={roads}
-								coverageTravelTime={coverageTravelTime}
-								colorScaleBucketCount={colorScaleBucketCount}
-								resolution={resolution}
-								hideRoads={hideRoads}
-								useOsmRoadSpeed={useOsmRoadSpeed}
-								showPoints={showPoints}
-								showPopulationDensity={showPopulationDensity}
-								hasDiscreteColorScale={hasDiscreteColorScale}
-								pointRadius={pointRadius}
-								colorScale={colorScale}
+							<Graph
+								queryResponse={queryResponse}
+								dataset={dataset}
+								variable={variable}
 							/>
 						</div>
 					</div>

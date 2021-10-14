@@ -76,6 +76,10 @@ module.exports = function ({ env } = {}) {
 						{ loader: 'css-loader' },
 					],
 				},
+				{
+					test: /\.svg$/,
+					loader: 'text-loader',
+				}
 			],
 		},
 		resolve: {

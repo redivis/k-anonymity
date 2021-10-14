@@ -1,7 +1,12 @@
 .wrapper{
-    width: 100%;
-    height: 100%;
+    width: 600px;
+    height: 400px;
     position: relative;
+}
+
+.descriptionWrapper{
+    width: 419px;
+    margin-bottom: 30px;
 }
 
 .downloadButton{
