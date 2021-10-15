@@ -4,16 +4,11 @@ import tableHasVariable from 'helpers/tableHasVariable';
 
 const SAMPLE_PERCENT = 1;
 
+function escape(name){
+	return name.replace(/\W+/g, '_');
+}
+
 function getRiskQuery(variable, quasiIdentifiers, variablesByTableName, table, tables, dataset, organizationIdentifier){
-	console.log(
-		variable,
-		quasiIdentifiers,
-		variablesByTableName,
-		table,
-		tables,
-		dataset,
-		organizationIdentifier
-	);
 	if (quasiIdentifiers.length === 0) return null;
 	const persistentVariableName = variable.name;
 
@@ -23,31 +18,23 @@ function getRiskQuery(variable, quasiIdentifiers, variablesByTableName, table, t
 		return false;
 	})
 
-	// TODO: figure out structure of quasiIdentifiers, identifiersForTable
-
-
 	const filteredMatchedTables = matchedTables.filter((matchedTable) => {
 		return quasiIdentifiers.some((quasiIdentifier) =>
-			quasiIdentifier.tables.some((quasiIdentifierTable) => quasiIdentifierTable.name === matchedTable.name)
+			quasiIdentifier.table.name === matchedTable.name
 		);
-		// return quasiIdentifiers.find(({table_name, name}) => {
-		// 	return allVariablesMap.get(`${table_name.replace(/\W+/g, '_')}.${name.toLowerCase()}`).table === table
-		// });
 	})
 	console.log('matched/filtered matched tables', matchedTables, filteredMatchedTables);
 
 	const INT64_MIN = (2 ** 64 / 2) * -1;
 
-	const qualifiedDataset = `${organizationIdentifier.replace(/\W+/g, '_')}.${dataset.name.replace(/\W+/g, '_')}`
-	const escapedTableIdentifier = table.name.replace(/\W+/g, '_')
+	const qualifiedDataset = `${escape(organizationIdentifier)}.${escape(dataset.name)}`
+	const escapedTableIdentifier = escape(table.name);
 
-	const identifiersForTable = quasiIdentifiers.filter(({table_name}) => table_name === escapedTableIdentifier);
+	const identifiersForTable = quasiIdentifiers.filter((quasiIdentifier) => quasiIdentifier.table.name === table.name);
 
 	const sampleClause = `
 		WHERE FARM_FINGERPRINT(CAST(${persistentVariableName} AS STRING)) < ${INT64_MIN + 2 ** 64 / 100 * SAMPLE_PERCENT}
 	`;
-
-	return `SELECT 1+1 FROM ${qualifiedDataset}.${escapedTableIdentifier}`;
 
 	return `
 		SELECT
@@ -63,32 +50,31 @@ function getRiskQuery(variable, quasiIdentifiers, variablesByTableName, table, t
 			COUNT(DISTINCT ${persistentVariableName}) AS group_size ${identifiersForTable.length + quasiIdentifiers.length ? ',' : ''}
 			${
 				quasiIdentifiers
-					.map(({table_name, name}) => `${table_name}.${name}`)
+					.map(({ table, variable }) => `${escape(table.name)}.${variable.name}`)
 					.join(', ')
 			} 
 		  
 			FROM (
 				SELECT 
-					${persistentVariableName} ${identifiersForTable.length ? ', ' + identifiersForTable.map(({name}) => name).join(', ') : ''}
+					${persistentVariableName} ${identifiersForTable.length ? ', ' + identifiersForTable.map(({ variable }) => variable.name).join(', ') : ''}
 				FROM ${qualifiedDataset}.${escapedTableIdentifier}
 				${sampleClause}
 				GROUP BY 
-					${persistentVariableName} ${identifiersForTable.length ? ', ' +  identifiersForTable.map(({name}) => name).join(', ') : ''}
+					${persistentVariableName} ${identifiersForTable.length ? ', ' +  identifiersForTable.map(({ variable }) => variable.name).join(', ') : ''}
 			) AS ${escapedTableIdentifier}
 		  
 			${filteredMatchedTables
-				.map(({name: tableName}) => {
-					tableName = tableName.replace(/\W+/g, '_')
-					const identifiersForTable = quasiIdentifiers.filter(({table_name}) => table_name === tableName);
+				.map(({ name }) => {
+					const identifiersForTable = quasiIdentifiers.filter(({ table }) => escape(name) === escape(table.name));
 					return `
 						LEFT JOIN (
 							SELECT 
-								${persistentVariableName},  ${identifiersForTable.map(({name}) => name).join(', ')}
-							FROM ${qualifiedDataset}.${tableName}
+								${persistentVariableName},  ${identifiersForTable.map(({ variable }) => variable.name).join(', ')}
+							FROM ${qualifiedDataset}.${escape(name)}
 							${sampleClause}
 							GROUP BY 
-								${persistentVariableName}, ${identifiersForTable.map(({name}) => name).join(', ')}
-						) AS ${tableName} 
+								${persistentVariableName}, ${identifiersForTable.map(({ variable }) => variable.name).join(', ')}
+						) AS ${escape(name)} 
 						USING(${persistentVariableName})
 					`;
 				})
@@ -97,7 +83,7 @@ function getRiskQuery(variable, quasiIdentifiers, variablesByTableName, table, t
 		  
 			GROUP BY ${
 				quasiIdentifiers
-					.map(({table_name, name}) => `${table_name}.${name}`)
+					.map(({ table, variable }) => `${escape(table.name)}.${variable.name}`)
 				.join(',')
 			}
 	)t
@@ -118,7 +104,7 @@ const sampleData = [
 ]
 
 export default async function computeRisk(variable, quasiIdentifiers, variablesByTableName, table, tables, dataset, organizationIdentifier) {
-	return sampleData;
+	// return sampleData;
 	const riskQuery = getRiskQuery(variable, quasiIdentifiers, variablesByTableName, table, tables, dataset, organizationIdentifier);
 	console.log('riskQuery', riskQuery);
 	const queryResponse = await query(riskQuery).listRows();

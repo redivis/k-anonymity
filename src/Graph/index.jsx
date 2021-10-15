@@ -31,17 +31,16 @@ export default function Graph({
 			}
 		};
 	}, [
-		graphElement.current,
 		queryResponse,
 	]);
 
 	const renderGraphText = useCallback(() => {
 		const droppedRecordCount = queryResponse.reduce((totalRows, {bucket, record_count}) => totalRows += isNaN(bucket) ? 0 : record_count, 0);
 		const totalRecordCount = queryResponse.reduce((totalRows, {bucket, record_count}) => totalRows += record_count, 0);
-		const percent = Math.round(droppedRecordCount / totalRecordCount * 1e7) / 1e5
+		const percent = Math.round(droppedRecordCount / totalRecordCount * 1e7) / 1e5;
 
 		return `
-			${percent}% (~${droppedRecordCount} observations) of unique ${variable.name} in "${dataset.name}" have a k-anonymity value under 10, and may be considered re-identifiable.\n\n
+			${percent}% (~${droppedRecordCount} observations) of unique ${variable?.name} in "${dataset?.name}" have a k-anonymity value under 10, and may be considered re-identifiable.\n\n
 			
 			A k-anonymity value of 10 means that a given entity is indistinguishable from at least 9 other values, given the quasi-identifiers provided.\n\n
 			
@@ -59,7 +58,7 @@ export default function Graph({
 			}
 			{queryResponse &&
 				<>
-					<span>{`K-anonymity in ${dataset.name}`}</span>
+					<span>{`K-anonymity in ${dataset?.name}`}</span>
 					<div ref={graphElement} className={styles.wrapper} />
 					<div className={styles.graphTextWrapper}>{renderGraphText()}</div>
 				</>

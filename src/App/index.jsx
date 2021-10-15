@@ -145,22 +145,6 @@ function App({ history }) {
 		handleSetIsUserAuthorized();
 	}, []);
 
-	const accessToken = getCredentials();
-
-	const handleSignIn = useCallback(async () => {
-		try {
-			await login();
-			window.location.assign(window.location.href);
-		} catch (e) {
-			console.error(e);
-		}
-	}, []);
-
-	const handleSignOut = useCallback(async () => {
-		logout();
-		window.location.assign(window.location.href);
-	}, []);
-
 	const [owner, setOwner] = useState(DEFAULT_OWNER);
 	const [dataset, setDataset] = useState(null);
 	const [version, setVersion] = useState(null);
@@ -279,8 +263,6 @@ function App({ history }) {
 	const [pointRadius, setPointRadius] = useState(DEFAULT_POINT_RADIUS);
 	const [colorScale, setColorScale] = useState(DEFAULT_COLOR_SCALE);
 
-	const titleClasses = useTitleStyles();
-
 	const renderHeader = () => {
 		return (
 			<div className={styles.headerWrapper}>
@@ -351,43 +333,6 @@ function App({ history }) {
 								variablesByTableName={variablesByTableName}
 								setVariablesByTableName={setVariablesByTableName}
 								onCalculateRisk={handleCalculateRisk}
-								region={region}
-								setRegion={setRegion}
-								subregion={subregion}
-								setSubregion={setSubregion}
-								latitudeIndicator={latitudeIndicator}
-								setLatitudeIndicator={setLatitudeIndicator}
-								longitudeIndicator={longitudeIndicator}
-								setLongitudeIndicator={setLongitudeIndicator}
-								roads={roads}
-								setRoads={setRoads}
-								coverageTravelTime={coverageTravelTime}
-								setCoverageTravelTime={setCoverageTravelTime}
-								colorScaleBucketCount={colorScaleBucketCount}
-								setColorScaleBucketCount={setColorScaleBucketCount}
-								resolution={resolution}
-								setResolution={setResolution}
-								hideRoads={hideRoads}
-								useOsmRoadSpeed={useOsmRoadSpeed}
-								showPoints={showPoints}
-								setHideRoads={setHideRoads}
-								setUseOsmRoadSpeed={setUseOsmRoadSpeed}
-								setShowPoints={setShowPoints}
-								showPopulationDensity={showPopulationDensity}
-								setShowPopulationDensity={setShowPopulationDensity}
-								hasDiscreteColorScale={hasDiscreteColorScale}
-								setHasDiscreteColorScale={setHasDiscreteColorScale}
-								pointRadius={pointRadius}
-								setPointRadius={setPointRadius}
-								colorScale={colorScale}
-								setColorScale={setColorScale}
-								isFetchingTables={isFetchingTables}
-								tablesError={tablesError}
-								collection={collection}
-								isFetchingCollection={isFetchingCollection}
-								collectionError={collectionError}
-								isFetchingMap={isFetchingMap}
-								mapDataError={mapDataError}
 							/>
 						</div>
 						<div className={styles.graph}>

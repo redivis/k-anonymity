@@ -9,6 +9,32 @@ import { scaleLinear as d3ScaleLinear, scaleBand as d3ScaleBand, scaleLog as d3S
 import { axisBottom as d3AxisBottom } from 'd3-axis';
 import { max as d3Max } from 'd3-array';
 
+function formatData(data){
+	const totalRecords = data.reduce((totalRows, { bucket, record_count }) => totalRows += record_count, 0);
+
+	const formattedBuckets = [];
+	let cumulativeRecords = 0;
+	for (let i = 1; i < 10; i++) {
+		let relevantBucket = data.find(({ bucket }) => parseInt(bucket) === i);
+		if (relevantBucket) cumulativeRecords += relevantBucket.record_count;
+		formattedBuckets.push({ bucket: i, cumulativeRecords, totalRecords });
+		if (cumulativeRecords === totalRecords) break;
+	}
+	if (cumulativeRecords < totalRecords){
+		if (data.find(({ bucket }) => bucket === '[10, 15)')){
+			console.log('10 to 15 bucket')
+		}
+		if (data.find(({ bucket }) => bucket === '[15, 20)')){
+			console.log('15 to 20 bucket')
+		}
+		if (data.find(({ bucket }) => bucket === '>20')){
+			console.log('>20 bucket')
+		}
+	}
+
+	return formattedBuckets;
+}
+
 const barTooltip = tooltip()
 	.attr('class', styles.tooltip)
 	.html((bar) => {
@@ -66,6 +92,8 @@ export default class GraphRenderer {
 	update({ data }) {
 		if (data) {
 			this.elem.classList.add(styles.loading);
+			const formattedData = formatData(data);
+			console.log('formatted (CDF)', formattedData)
 
 
 			this.onResize();

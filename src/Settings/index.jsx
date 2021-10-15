@@ -27,6 +27,7 @@ import Slider from '@material-ui/core/Slider';
 import Tooltip from '@material-ui/core/Tooltip';
 import Autocomplete from '@mui/material/Autocomplete';
 import Button from '@mui/material/Button'
+import LoadingButton from '@mui/lab/LoadingButton';
 
 import getDataset from 'helpers/getDataset';
 import listDatasets from 'helpers/listDatasets';
@@ -101,23 +102,18 @@ const useFormStyles = makeStyles({
 });
 
 function formatQuasiIdentifiers(variable, table, tables, variablesByTableName){
-	let quasiIdentifiersByVariableName = {};
+	let quasiIdentifiers = [];
 
 	for (let datasetTable of tables){
-		if (variable && !tableHasVariable(variable, datasetTable, variablesByTableName)) continue;
+		if (variable ? !tableHasVariable(variable, datasetTable, variablesByTableName) : table.name !== datasetTable.name) continue;
 
 		for (const datasetTableVariable of (variablesByTableName[datasetTable.name] || [])){
-			if (variable && datasetTableVariable.name === variable.name) continue;
-			const existingQuasiIdentifier = quasiIdentifiersByVariableName[datasetTableVariable.name]
-			if (existingQuasiIdentifier){
-				existingQuasiIdentifier.tables.push(datasetTable);
-			} else {
-				quasiIdentifiersByVariableName[datasetTableVariable.name] = { variable: datasetTableVariable, tables: [datasetTable] }
-			}
+			if (variable && datasetTableVariable.name.toLowerCase() === variable.name.toLowerCase()) continue;
+			quasiIdentifiers.push(({ variable: datasetTableVariable, table: datasetTable }))
 		}
 	}
 
-	return Object.keys(quasiIdentifiersByVariableName).map((variableName) => quasiIdentifiersByVariableName[variableName]);
+	return quasiIdentifiers;
 }
 
 export default function Settings({
@@ -325,7 +321,7 @@ export default function Settings({
 		} else {
 			setFilteredQuasiIdentifiers([]);
 		}
-	}, [variablesByTableName, variable]);
+	}, [variable]);
 
 	const handleClearAll = useCallback(() => {
 		setOwner('');
@@ -356,7 +352,7 @@ export default function Settings({
 						)
 							:
 						(
-							<Button onClick={onAuthorize}>{'Authenticate with Redivis'}</Button>
+							<Button variant={'contained'} onClick={onAuthorize}>{'Authenticate with Redivis'}</Button>
 						)
 					}
 				</div>
@@ -527,7 +523,7 @@ export default function Settings({
 								multiple
 								id={'quasiIdentifier'}
 								open={isQuasiIdentifiersOpen}
-								disabled={!owner || !dataset || !version || !table || !variable}
+								disabled={!owner || !dataset || !version || !table}
 								onOpen={() => {
 									setIsQuasiIdentifiersOpen(true);
 								}}
@@ -536,8 +532,8 @@ export default function Settings({
 								}}
 								value={selectedQuasiIdentifiers}
 								onChange={(e, newValue) => setSelectedQuasiIdentifiers(newValue)}
-								isOptionEqualToValue={(option, value) => option.variable.name === value.variable.name}
-								getOptionLabel={(option) => `${option.variable.name} in ${option.tables.length > 1 ? `${option.tables.length} tables` : option.tables[0]?.name}`}
+								isOptionEqualToValue={(option, value) => `${option.table.name}_${option.variable.name}` === `${value.table.name}_${value.variable.name}`}
+								getOptionLabel={(option) => `${option.variable.name} in ${option.table.name}`}
 								options={filteredQuasiIdentifiers}
 								loading={isQuasiIdentifiersLoading}
 								renderInput={(params) => (
@@ -562,10 +558,17 @@ export default function Settings({
 						</div>
 					</div>
 					<div className={styles.sectionWrapper}>
-						<Button onClick={handleClearAll}>{'Clear all'}</Button>
+						<Button variant={'outlined'} onClick={handleClearAll}>{'Clear all'}</Button>
 					</div>
 					<div className={styles.sectionWrapper}>
-						<Button loading={isCalculatingRisk} onClick={handleCalculateRisk}>{'Calculate re-identification risk'}</Button>
+						<LoadingButton
+							variant={'contained'}
+							disabled={!owner || !dataset || !version || !table || !variable || !selectedQuasiIdentifiers?.length}
+							loading={isCalculatingRisk}
+							onClick={handleCalculateRisk}
+						>
+							{'Calculate re-identification risk'}
+						</LoadingButton>
 					</div>
 				</React.Fragment>}
 			</div>
