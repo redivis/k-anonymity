@@ -2,83 +2,19 @@ import PropTypes from 'prop-types';
 import React, { useCallback, useState, useEffect } from 'react';
 
 import TextField from '@material-ui/core/TextField';
-import { grey } from '@material-ui/core/colors';
 import CircularProgress from '@material-ui/core/CircularProgress';
 import Autocomplete from '@mui/material/Autocomplete';
 import Button from '@mui/material/Button'
 import LoadingButton from '@mui/lab/LoadingButton';
 
-import getDataset from 'helpers/getDataset';
-import listDatasets from 'helpers/listDatasets';
-import listVersions from 'helpers/listVersions';
-import listTables from 'helpers/listTables';
-import listVariablesByTableName from 'helpers/listVariablesByTableName';
-
-import tableHasVariable from 'helpers/tableHasVariable';
-
-import { makeStyles } from '@material-ui/core/styles';
+import getDataset from '../helpers/getDataset';
+import listDatasets from '../helpers/listDatasets';
+import listVersions from '../helpers/listVersions';
+import listTables from '../helpers/listTables';
+import listVariablesByTableName from '../helpers/listVariablesByTableName';
+import tableHasVariable from '../helpers/tableHasVariable';
 
 import * as styles from './styles.css';
-
-const tableReferenceRegex = /^\/tables\/([^.]+)\.([^.]+)\.([^.]+)$/i;
-function getTableReference({ uri = '', name }) {
-	const match = uri.match(tableReferenceRegex);
-	if (match) {
-		const fullReference = {
-			ownerReference: match[1],
-			parentEntityReference: match[2].split(':')[0],
-			qualifiedParentEntityReference: match[2],
-			tableReference: match[3].split(':')[0],
-			qualifiedTableReference: match[3],
-		};
-		return fullReference.tableReference;
-	} else {
-		return name;
-	}
-}
-
-
-
-const useFormStyles = makeStyles({
-	formControl: {
-		width: '100%',
-	},
-	formControlLabel: {
-		marginTop: 7,
-		marginBottom: 15,
-	},
-	radioGroup: {
-		marginLeft: 11,
-	},
-	pending: {
-		color: grey[500],
-		marginRight: 5,
-	},
-	collapse: {
-		entered: {
-			marginBottom: 10,
-		},
-	},
-	listItem: {
-		width: 'calc(100% + 60px)',
-		color: grey[900],
-		paddingLeft: 30,
-		marginLeft: -30,
-		marginRight: -30,
-	},
-	listItemText: {
-		primary: {
-			fontWeight: 'bold',
-		},
-	},
-	helperText: {
-		color: grey[500],
-		marginBottom: 0,
-		'&:not(:last-of-type)': {
-			marginBottom: 0,
-		},
-	},
-});
 
 function formatQuasiIdentifiers(variable, table, tables, variablesByTableName){
 	let quasiIdentifiers = [];
@@ -122,45 +58,6 @@ export default function Settings({
 	variablesByTableName,
 	setVariablesByTableName,
 	onCalculateRisk,
-	parentEntity,
-	setParentEntity,
-	region,
-	setRegion,
-	subregion,
-	setSubregion,
-	latitudeIndicator,
-	setLatitudeIndicator,
-	longitudeIndicator,
-	setLongitudeIndicator,
-	roads,
-	setRoads,
-	coverageTravelTime,
-	setCoverageTravelTime,
-	colorScaleBucketCount,
-	setColorScaleBucketCount,
-	resolution,
-	setResolution,
-	hideRoads,
-	setHideRoads,
-	useOsmRoadSpeed,
-	setUseOsmRoadSpeed,
-	showPoints,
-	setShowPoints,
-	showPopulationDensity,
-	setShowPopulationDensity,
-	hasDiscreteColorScale,
-	setHasDiscreteColorScale,
-	pointRadius,
-	setPointRadius,
-	colorScale,
-	setColorScale,
-	isFetchingTables,
-	tablesError,
-	collection,
-	isFetchingCollection,
-	collectionError,
-	isFetchingMap,
-	mapDataError,
 }) {
 	const [isDatasetsOpen, setIsDatasetsOpen] = useState(false);
 	const isDatasetsLoading = isDatasetsOpen && datasets.length === 0;
@@ -558,41 +455,7 @@ export default function Settings({
 Settings.propTypes = {
 	owner: PropTypes.string,
 	setOwner: PropTypes.func,
-	parentEntity: PropTypes.string,
-	setParentEntity: PropTypes.func,
-	table: PropTypes.string,
+	table: PropTypes.object,
 	setTable: PropTypes.func,
 	tables: PropTypes.arrayOf(PropTypes.object),
-	region: PropTypes.string,
-	setRegion: PropTypes.func,
-	subregion: PropTypes.string,
-	setSubregion: PropTypes.func,
-	latitudeIndicator: PropTypes.string,
-	setLatitudeIndicator: PropTypes.func,
-	longitudeIndicator: PropTypes.string,
-	setLongitudeIndicator: PropTypes.func,
-	roads: PropTypes.arrayOf(PropTypes.string),
-	setRoads: PropTypes.func,
-	coverageTravelTime: PropTypes.string,
-	setCoverageTravelTime: PropTypes.func,
-	colorScaleBucketCount: PropTypes.string,
-	setColorScaleBucketCount: PropTypes.func,
-	resolution: PropTypes.string,
-	setResolution: PropTypes.func,
-	hideRoads: PropTypes.bool,
-	setHideRoads: PropTypes.func,
-	useOsmRoadSpeed: PropTypes.bool,
-	setUseOsmRoadSpeed: PropTypes.func,
-	showPoints: PropTypes.bool,
-	setShowPoints: PropTypes.func,
-	showPopulationDensity: PropTypes.bool,
-	setShowPopulationDensity: PropTypes.func,
-	pointRadius: PropTypes.string,
-	setPointRadius: PropTypes.func,
-	colorScale: PropTypes.arrayOf(PropTypes.string),
-	setColorScale: PropTypes.func,
-	collection: PropTypes.object,
-	isFetchingCollection: PropTypes.bool,
-	collectionError: PropTypes.object,
-	mapDataError: PropTypes.object,
 };

@@ -34,6 +34,7 @@ app.use(
 	}),
 );
 
+app.use('/k-anonymity/assets', express.static(path.join(__dirname, '../assets')));
 
 
 app.use(`/k-anonymity`, (req, res, next) => {

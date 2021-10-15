@@ -1,6 +1,6 @@
 import { query } from 'redivis';
 
-import tableHasVariable from 'helpers/tableHasVariable';
+import tableHasVariable from '../helpers/tableHasVariable';
 
 const SAMPLE_PERCENT = 1;
 
