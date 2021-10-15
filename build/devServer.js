@@ -25,7 +25,7 @@ app.use((req, res, next) => {
 
 app.use(
 	webpackMiddleware(compiler, {
-		publicPath: `/geo-coverage/dist`,
+		publicPath: `/k-anonymity/dist`,
 		headers: {
 			'Access-Control-Allow-Origin': '*',
 			'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, PATCH, OPTIONS',
@@ -34,17 +34,14 @@ app.use(
 	}),
 );
 
-app.use('/geo-coverage/assets', express.static(path.join(__dirname, '../assets')));
 
-app.use(`/geo-coverage/authCallback`, (req, res, next) => {
-	res.sendFile(path.join(__dirname, '../authCallback.html'));
-});
-app.use(`/geo-coverage`, (req, res, next) => {
+
+app.use(`/k-anonymity`, (req, res, next) => {
 	res.sendFile(path.join(__dirname, '../index.html'));
 });
 
 app.use('/', (req, res) => {
-	res.redirect('/geo-coverage');
+	res.redirect('/k-anonymity');
 });
 app.use(`/*`, (req, res, next) => {
 	res.sendFile(path.join(__dirname, '../404.html'));

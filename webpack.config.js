@@ -1,7 +1,3 @@
-/* eslint-disable import/no-commonjs*/
-/* eslint-disable import/no-nodejs-modules*/
-/* eslint-disable import/unambiguous*/
-const path = require('path');
 const webpack = require('webpack');
 
 module.exports = function ({ env } = {}) {
@@ -16,7 +12,7 @@ module.exports = function ({ env } = {}) {
 		mode: env === 'development' ? 'development' : 'production',
 		plugins: [
 			new webpack.DefinePlugin({
-				'process.env.ROOT_PATH': JSON.stringify('/geo-coverage'),
+				'process.env.ROOT_PATH': JSON.stringify('/k-anonymity'),
 			}),
 		],
 		module: {
@@ -85,14 +81,13 @@ module.exports = function ({ env } = {}) {
 		resolve: {
 			modules: [`${__dirname}/src`, `node_modules`],
 			extensions: ['*', '.js', '.jsx'],
-			alias: {
-		      '@mui/styled-engine': '@mui/styled-engine-sc'
-		    },
+			alias: { '@mui/styled-engine': '@mui/styled-engine-sc' },
 		},
 	};
 
 	if (env === 'development') {
 		output.devtool = 'eval-cheap-module-source-map';
+
 	}
 
 	return output;

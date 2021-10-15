@@ -7,7 +7,6 @@ import tooltip from 'helpers/d3/tooltip';
 import { select as d3Select } from 'd3-selection';
 import { scaleLinear as d3ScaleLinear, scaleBand as d3ScaleBand, scaleLog as d3ScaleLog } from 'd3-scale';
 import { axisBottom as d3AxisBottom } from 'd3-axis';
-import { max as d3Max } from 'd3-array';
 
 function percentage(d){
 	return Math.round(d.cumulativeRecords / d.totalRecords * 100);
