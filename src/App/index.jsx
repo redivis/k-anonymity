@@ -1,28 +1,21 @@
-import PropTypes from 'prop-types';
 import React, { useEffect, useState, useCallback } from 'react';
 import { withRouter } from 'react-router-dom';
 
 import Graph from '../Graph';
 import Settings from '../Settings';
 import Button from '@mui/material/Button';
-
 import {  createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
 
-import computeRisk from 'helpers/computeRisk';
-
-import headerSVG from 'assets/header.svg';
-import labsSVG from 'assets/labs.svg';
+import computeRisk from '../helpers/computeRisk';
 
 import * as styles from './styles.css';
 import {
-	query,
 	authorize,
 	deauthorize,
 	isAuthorized,
 } from 'redivis';
 
 const DEFAULT_OWNER = 'Demo';
-const DEFAULT_PARENT_ENTITY = null;
 
 const theme = createMuiTheme({
 	palette: {
@@ -78,7 +71,6 @@ function App({ history }) {
 	const [owner, setOwner] = useState(DEFAULT_OWNER);
 	const [dataset, setDataset] = useState(null);
 	const [version, setVersion] = useState(null);
-	const [parentEntity, setParentEntity] = useState(DEFAULT_PARENT_ENTITY);
 	const [table, setTable] = useState(null);
 	const [variable, setVariable] = useState(null);
 
@@ -105,8 +97,8 @@ function App({ history }) {
 			<div className={styles.headerWrapper}>
 				<div className={styles.header}>
 					<div className={styles.titleWrapper}>
-						<div className={styles.headerLogo} style={{ height: 33, width: 133, backgroundImage: `url(data:image/svg+xml;base64,${btoa(headerSVG)})` }} />
-						<div style={{ height: 30, width: 70, backgroundImage: `url(data:image/svg+xml;base64,${btoa(labsSVG)})` }} />
+						<div className={styles.headerLogo} style={{ height: 33, width: 133, backgroundImage: `url(/k-anonymity/assets/header.svg)` }} />
+						<div style={{ height: 30, width: 70, backgroundImage: `url(/k-anonymity/assets/labs.svg)` }} />
 						<div className={styles.divider} />
 						<span>{'K-anonymity computation'}</span>
 					</div>
@@ -155,8 +147,6 @@ function App({ history }) {
 								setVersion={setVersion}
 								versions={versions}
 								setVersions={setVersions}
-								parentEntity={parentEntity}
-								setParentEntity={setParentEntity}
 								table={table}
 								setTable={setTable}
 								tables={tables}

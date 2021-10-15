@@ -15,6 +15,7 @@ export default async function getDataset(dataset, { version } = {}) {
 			datasetsCache[dataset.uri] = loadedDataset;
 		} catch (e){
 			console.error('Could not get dataset')
+			console.error(e)
 		}
 		return loadedDataset;
 	}

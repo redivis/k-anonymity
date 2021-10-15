@@ -1,8 +1,6 @@
-import './styles.css';
-
 import * as styles from './styles.css';
 
-import tooltip from 'helpers/d3/tooltip';
+import tooltip from '../helpers/d3/tooltip';
 
 import { select as d3Select } from 'd3-selection';
 import { scaleLinear as d3ScaleLinear, scaleBand as d3ScaleBand, scaleLog as d3ScaleLog } from 'd3-scale';
