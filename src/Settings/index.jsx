@@ -1,5 +1,5 @@
 import PropTypes from 'prop-types';
-import React, { useCallback, useState } from 'react';
+import React, { useCallback, useState, useEffect } from 'react';
 
 import TextField from '@material-ui/core/TextField';
 import MenuItem from '@material-ui/core/MenuItem';
@@ -25,11 +25,19 @@ import Collapse from '@material-ui/core/Collapse';
 import List from '@material-ui/core/List';
 import Slider from '@material-ui/core/Slider';
 import Tooltip from '@material-ui/core/Tooltip';
+import Autocomplete from '@mui/material/Autocomplete';
+import Button from '@mui/material/Button'
+import LoadingButton from '@mui/lab/LoadingButton';
+
+import getDataset from 'helpers/getDataset';
+import listDatasets from 'helpers/listDatasets';
+import listVersions from 'helpers/listVersions';
+import listTables from 'helpers/listTables';
+import listVariablesByTableName from 'helpers/listVariablesByTableName';
+
+import tableHasVariable from 'helpers/tableHasVariable';
 
 import { makeStyles } from '@material-ui/core/styles';
-
-import countries from 'helpers/countryList';
-import roadOptions from 'helpers/roadOptions';
 
 import * as styles from './styles.css';
 
@@ -50,17 +58,7 @@ function getTableReference({ uri = '', name }) {
 	}
 }
 
-function getSubregionOptions(region, subregion) {
-	const country = countries.find(({ name }) => name === region);
-	const subregions = [];
-	if (country) {
-		subregions.push(...country.subregions);
-	}
-	if (subregion) {
-		subregions.unshift({ name: '' });
-	}
-	return subregions;
-}
+
 
 const useFormStyles = makeStyles({
 	formControl: {
@@ -103,13 +101,50 @@ const useFormStyles = makeStyles({
 	},
 });
 
+function formatQuasiIdentifiers(variable, table, tables, variablesByTableName){
+	let quasiIdentifiers = [];
+
+	for (let datasetTable of tables){
+		if (variable ? !tableHasVariable(variable, datasetTable, variablesByTableName) : table.name !== datasetTable.name) continue;
+
+		for (const datasetTableVariable of (variablesByTableName[datasetTable.name] || [])){
+			if (variable && datasetTableVariable.name.toLowerCase() === variable.name.toLowerCase()) continue;
+			quasiIdentifiers.push(({ variable: datasetTableVariable, table: datasetTable }))
+		}
+	}
+
+	return quasiIdentifiers;
+}
+
 export default function Settings({
+	isUserAuthorized,
+	onAuthorize,
+	onDeauthorize,
 	owner,
 	setOwner,
-	parentEntity,
-	setParentEntity,
+	dataset,
+	setDataset,
+	datasets,
+	setDatasets,
+	version,
+	setVersion,
+	versions,
+	setVersions,
 	table,
 	setTable,
+	tables,
+	setTables,
+	variable,
+	setVariable,
+	variables,
+	setVariables,
+	selectedQuasiIdentifiers,
+	setSelectedQuasiIdentifiers,
+	variablesByTableName,
+	setVariablesByTableName,
+	onCalculateRisk,
+	parentEntity,
+	setParentEntity,
 	region,
 	setRegion,
 	subregion,
@@ -140,7 +175,6 @@ export default function Settings({
 	setPointRadius,
 	colorScale,
 	setColorScale,
-	tables,
 	isFetchingTables,
 	tablesError,
 	collection,
@@ -149,513 +183,394 @@ export default function Settings({
 	isFetchingMap,
 	mapDataError,
 }) {
-	const resetLatAndLong = useCallback(() => {
-		setLatitudeIndicator('');
-		setLongitudeIndicator('');
-	}, []);
+	const [isDatasetsOpen, setIsDatasetsOpen] = useState(false);
+	const isDatasetsLoading = isDatasetsOpen && datasets.length === 0;
 
-	const handleSetOwner = useCallback((e) => {
-		setOwner(e.target.value);
-		resetLatAndLong();
-	}, []);
+	const [isVersionsOpen, setIsVersionsOpen] = useState(false);
+	const isVersionsLoading = isVersionsOpen && versions.length === 0;
 
-	const handleSetParentEntity = useCallback((e) => {
-		setParentEntity(e.target.value);
-		resetLatAndLong();
-	}, []);
+	const [isTablesOpen, setIsTablesOpen] = useState(false);
+	const isTablesLoading = isTablesOpen && tables.length === 0;
 
-	const handleSetTable = useCallback((e) => {
-		setTable(e.target.value);
-		resetLatAndLong();
-	}, []);
+	const [isVariablesOpen, setIsVariablesOpen] = useState(false);
+	const isVariablesLoading = isVariablesOpen && variables.length === 0;
 
-	const handleSetRegion = useCallback((e) => {
-		setRegion(e.target.value);
-		setSubregion('');
-	}, []);
+	const [filteredQuasiIdentifiers, setFilteredQuasiIdentifiers] = useState([])
+	const [isQuasiIdentifiersOpen, setIsQuasiIdentifiersOpen] = useState(false);
+	const isQuasiIdentifiersLoading = isQuasiIdentifiersOpen && filteredQuasiIdentifiers.length === 0;
 
-	const handleSetSubregion = useCallback((e) => {
-		setSubregion(e.target.value);
-	}, []);
+	const [isCalculatingRisk, setIsCalculatingRisk] = useState(false);
 
-	const handleSetLatitudeIndicator = useCallback((e) => {
-		setLatitudeIndicator(e.target.value);
-	}, []);
+	useEffect(() => {
+		let active = true;
 
-	const handleSetLongitudeIndicator = useCallback((e) => {
-		setLongitudeIndicator(e.target.value);
-	}, []);
+		if (!isDatasetsLoading) {
+			return undefined;
+		}
 
-	const handleSetRoads = useCallback(
-		(e) => {
-			const nextSelectedRoadsSet = new Set(roads);
-			if (e.target.checked) {
-				nextSelectedRoadsSet.add(e.target.name);
-			} else {
-				nextSelectedRoadsSet.delete(e.target.name);
+		(async () => {
+			if (active && owner) {
+				const nextDatasets = await listDatasets(owner);
+				setDatasets(nextDatasets);
 			}
-			setRoads([...nextSelectedRoadsSet]);
-		},
-		[roads],
-	);
+		})();
 
-	const handleSetCoverageTravelTime = useCallback((e) => {
-		setCoverageTravelTime(e.target.value);
-	}, []);
+		return () => {
+			active = false;
+		};
+	}, [isDatasetsLoading]);
 
-	const handleSetColorScaleBucketCount = useCallback((e) => {
-		setColorScaleBucketCount(e.target.value);
-	}, []);
+	useEffect(() => {
+		let active = true;
 
-	const handleSetResolution = useCallback((e) => {
-		setResolution(e.target.value);
-	}, []);
+		if (!isVersionsLoading) {
+			return undefined;
+		}
 
-	const handleSetShowPoints = useCallback((e) => {
-		setShowPoints(e.target.checked);
-	}, []);
+		(async () => {
+			if (active && owner && dataset) {
+				const nextVersions = await listVersions(dataset);
+				setVersions(nextVersions);
+			}
+		})();
 
-	const handleSetHideRoads = useCallback((e) => {
-		setHideRoads(e.target.checked);
-	}, []);
+		return () => {
+			active = false;
+		};
+	}, [isVersionsLoading]);
 
-	const handleSetUseOsmRoadSpeed = useCallback((e) => {
-		setUseOsmRoadSpeed(e.target.checked);
-	}, []);
+	useEffect(() => {
+		let active = true;
 
-	const handleSetShowPopulationDensity = useCallback((e) => {
-		setShowPopulationDensity(e.target.checked);
-	}, []);
+		if (!isQuasiIdentifiersLoading) {
+			return undefined;
+		}
 
-	const handleSetHasDiscreteColorScale = useCallback((e) => {
-		setHasDiscreteColorScale(e.target.checked);
-	}, []);
+		(async () => {
+			if (active && owner && dataset) {
+				const nextVersions = await listVersions(dataset);
+				setVersions(nextVersions);
+			}
+		})();
 
-	const handleSetPointRadius = useCallback((e) => {
-		setPointRadius(e.target.value);
-	}, []);
+		return () => {
+			active = false;
+		};
+	}, [isVersionsLoading]);
 
-	const formClasses = useFormStyles();
+	useEffect(() => {
+		setDataset(null);
+		setVersion(null);
+		setTable(null);
+		setVariable(null);
+		setSelectedQuasiIdentifiers([]);
+		setDatasets([]);
+		setVersions([]);
+		setTables([]);
+		setVariables([]);
+		setVariablesByTableName({});
+		setFilteredQuasiIdentifiers([]);
+	}, [owner])
 
-	const selectedRoadsSet = new Set(roads);
+	useEffect(() => {
+		if (dataset){
+			(async () => {
+				const nextDataset = await getDataset(dataset);
+				setDataset(nextDataset);
+				setVersion((nextDataset || {}).getProperty?.('currentVersion') || null);
+			})()
+		} else {
+			setVersion(null);
+		}
+		setVersions([]);
+		setTable(null);
+		setTables([])
+	}, [dataset?.name])
 
-	const subregions = getSubregionOptions(region, subregion);
+	useEffect(() => {
+		if (owner && dataset && version){
+			(async () => {
+				let nextDataset = dataset;
+				if (dataset.getProperty?.('version')?.tag !== version.tag){
+					const nextDataset = await getDataset(dataset, { version: version.tag })
+					setDataset(nextDataset);
+				}
+				const nextTables = await listTables(nextDataset);
+				setTables(nextTables);
+			})()
+		} else {
+			setTables([])
+		}
+	}, [version])
 
-	const [showTableOptions, setShowTableOptions] = useState(true);
-	const [showRegion, setShowRegion] = useState(true);
-	const [showLatLong, setShowLatLong] = useState(!!(latitudeIndicator && longitudeIndicator));
-	const [showRoads, setShowRoads] = useState(false);
-	const [showSettings, setShowSettings] = useState(false);
+	useEffect(() => {
+		if (owner && dataset && version && table){
+			(async () => {
+				const nextVariablesByTableName = await listVariablesByTableName(table, tables);
+				setVariables(nextVariablesByTableName[table.name])
+				setVariablesByTableName(nextVariablesByTableName)
+			})()
+		}
+		setVariable(null)
+	}, [table])
 
-	const selectedListTable = tables.find(({ uri, name }) => getTableReference({ uri, name }) === table.toLowerCase());
+	useEffect(() => {
+		if (variable){
+			const nextFilteredQuasiIdentifiers = formatQuasiIdentifiers(variable, table, tables, variablesByTableName);
+			setFilteredQuasiIdentifiers(nextFilteredQuasiIdentifiers);
+		} else {
+			setFilteredQuasiIdentifiers([]);
+		}
+	}, [variable]);
+
+	const handleClearAll = useCallback(() => {
+		setOwner('');
+	}, [])
+
+	const handleCalculateRisk = useCallback(async () => {
+		setIsCalculatingRisk(true);
+		try {
+			await onCalculateRisk();
+		} catch (e){
+			console.error(e);
+		} finally {
+			setIsCalculatingRisk(false);
+		}
+	}, [onCalculateRisk])
 
 	return (
 		<div className={styles.sideBarWrapper}>
 			<div className={styles.bodyWrapper}>
 				<div className={styles.sectionWrapper}>
-					<FormControl component={'fieldset'} error={!!collectionError} className={formClasses.formControl}>
-						<ListItem
-							button={true}
-							onClick={() => setShowTableOptions(!showTableOptions)}
-							className={formClasses.listItem}
-						>
-							<ListItemText className={formClasses.listItemText}>{'Data'}</ListItemText>
-							{(isFetchingCollection || isFetchingTables) && (
-								<CircularProgress size={20} className={formClasses.pending} />
-							)}
-							{table && (
-								<Badge badgeContent={''} variant={'dot'} color={'error'} invisible={!collectionError}>
-									<Chip size={'small'} label={`${parentEntity}.${table}`} />
-								</Badge>
-							)}
-							{showTableOptions ? <ExpandMore edge={'end'} /> : <ExpandLess edge={'end'} />}
-						</ListItem>
-						<Collapse in={showTableOptions} className={formClasses.collapse}>
-							<FormGroup>
-								<FormControlLabel
-									control={
-										<TextField
-											name={'owner'}
-											label={'Owner'}
-											value={owner}
-											onChange={handleSetOwner}
-											fullWidth={true}
-											variant={'outlined'}
-											placeholder={'User or organization'}
-										/>
-									}
-									className={formClasses.formControlLabel}
-								/>
-								<FormControlLabel
-									control={
-										<TextField
-											name={'parentEntity'}
-											label={'Dataset/Project'}
-											value={parentEntity}
-											onChange={handleSetParentEntity}
-											fullWidth={true}
-											variant={'outlined'}
-											placeholder={'dataset or project name'}
-										/>
-									}
-									className={formClasses.formControlLabel}
-								/>
-								<FormControlLabel
-									control={
-										tables.length ? (
-											<TextField
-												name={'table'}
-												label={'Table'}
-												value={selectedListTable ? getTableReference(selectedListTable) : ''}
-												select={true}
-												onChange={handleSetTable}
-												fullWidth={true}
-												variant={'outlined'}
-												placeholder={'table name'}
-											>
-												{tables.map(({ uri, name }) => {
-													const tableReference = getTableReference({ uri, name });
-													return (
-														<MenuItem key={tableReference} value={tableReference}>
-															{tableReference}
-														</MenuItem>
-													);
-												})}
-												}
-											</TextField>
-										) : (
-											<TextField
-												name={'table'}
-												label={'Table'}
-												value={table}
-												onChange={handleSetTable}
-												fullWidth={true}
-												variant={'outlined'}
-												placeholder={'table identifier'}
-											/>
-										)
-									}
-									className={formClasses.formControlLabel}
-								/>
-							</FormGroup>
-							<FormHelperText>{collectionError?.message || tablesError?.message || ''}</FormHelperText>
-						</Collapse>
-					</FormControl>
+					{isUserAuthorized ?
+						(
+							<div>
+								<div className={styles.sectionHeader}>{'Authenticated as'}</div>
+								<div className={styles.sectionText}>{'username'}</div>
+								<Button className={styles.linkButton} onClick={onDeauthorize}>{'Remove authentication'}</Button>
+							</div>
+						)
+							:
+						(
+							<Button variant={'contained'} onClick={onAuthorize}>{'Authenticate with Redivis'}</Button>
+						)
+					}
 				</div>
-				<div className={styles.sectionWrapper}>
-					<FormControl component={'fieldset'} error={!!mapDataError} className={formClasses.formControl}>
-						<ListItem
-							button={true}
-							onClick={() => setShowRegion(!showRegion)}
-							className={formClasses.listItem}
-						>
-							<ListItemText primary={'Region'} className={formClasses.listItemText} />
-							{isFetchingMap && <CircularProgress size={20} className={formClasses.pending} />}
-							{region && <Chip size={'small'} label={`${region}${subregion ? ` (${subregion})` : ''}`} />}
-							{showRegion ? <ExpandMore edge={'end'} /> : <ExpandLess edge={'end'} />}
-						</ListItem>
-						<Collapse in={showRegion} className={formClasses.collapse}>
-							<FormGroup>
-								<FormControlLabel
-									control={
-										<TextField
-											name={'region'}
-											label={'Country'}
-											value={region}
-											select={true}
-											onChange={handleSetRegion}
-											fullWidth={true}
-											variant={'outlined'}
-										>
-											{countries.map(({ name }) => (
-												<MenuItem key={name} value={name}>
-													{name}
-												</MenuItem>
-											))}
-										</TextField>
-									}
-									className={formClasses.formControlLabel}
-								/>
-								<FormControlLabel
-									control={
-										<TextField
-											name={'subregion'}
-											label={'Subregion (optional)'}
-											value={subregion}
-											select={true}
-											onChange={handleSetSubregion}
-											fullWidth={true}
-											variant={'outlined'}
-										>
-											{subregions.map(({ name }) => (
-												<MenuItem key={name} value={name}>
-													{name || '(deselect subregion)'}
-												</MenuItem>
-											))}
-										</TextField>
-									}
-									className={formClasses.formControlLabel}
-								/>
-							</FormGroup>
-							<FormHelperText>{mapDataError?.message || ''}</FormHelperText>
-						</Collapse>
-					</FormControl>
-				</div>
-				<div className={styles.sectionWrapper}>
-					<FormControl
-						component={'fieldset'}
-						required={true}
-						error={!latitudeIndicator || !longitudeIndicator}
-						className={formClasses.formControl}
-					>
-						<ListItem
-							button={true}
-							onClick={() => setShowLatLong(!showLatLong)}
-							className={formClasses.listItem}
-						>
-							<ListItemText primary={'Latitude & longitude'} className={formClasses.listItemText} />
-							{isFetchingCollection && <CircularProgress size={20} className={formClasses.pending} />}
-							<Badge
-								badgeContent={''}
-								variant={'dot'}
-								color={'error'}
-								invisible={isFetchingCollection || !!(latitudeIndicator && longitudeIndicator)}
-							>
-								<Chip
-									size={'small'}
-									label={`${latitudeIndicator || '_'}/${longitudeIndicator || '_'}`}
-								/>
-							</Badge>
-
-							{showLatLong ? <ExpandMore edge={'end'} /> : <ExpandLess edge={'end'} />}
-						</ListItem>
-						<Collapse in={showLatLong} className={formClasses.collapse}>
-							<FormGroup>
-								<FormControlLabel
-									control={
-										<TextField
-											name={'latitudeIndicator'}
-											label={'Latitude'}
-											value={latitudeIndicator}
-											select={true}
-											onChange={handleSetLatitudeIndicator}
-											fullWidth={true}
-											variant={'outlined'}
-											placeholder={'Select variable'}
-										>
-											{(collection?.indicators || []).map(({ variable: { name } = {} }) => (
-												<MenuItem key={name} value={name}>
-													{name}
-												</MenuItem>
-											))}
-										</TextField>
-									}
-									className={formClasses.formControlLabel}
-								/>
-								<FormControlLabel
-									control={
-										<TextField
-											name={'longitudeIndicator'}
-											label={'Longitude'}
-											value={longitudeIndicator}
-											select={true}
-											onChange={handleSetLongitudeIndicator}
-											fullWidth={true}
-											variant={'outlined'}
-											placeholder={'Select variable'}
-										>
-											{(collection?.indicators || []).map(({ variable: { name } = {} }) => (
-												<MenuItem key={name} value={name}>
-													{name}
-												</MenuItem>
-											))}
-										</TextField>
-									}
-									className={formClasses.formControlLabel}
-								/>
-								{!isFetchingCollection && (!latitudeIndicator || !longitudeIndicator) && (
-									<FormHelperText>{`Select ${
-										!latitudeIndicator
-											? `latitude ${!longitudeIndicator ? 'and longitude' : ''}`
-											: 'longitude'
-									} variable${!latitudeIndicator && !longitudeIndicator ? 's' : ''}`}</FormHelperText>
-								)}
-							</FormGroup>
-						</Collapse>
-					</FormControl>
-				</div>
-				<div className={styles.sectionWrapper}>
-					<FormControl component={'fieldset'} className={formClasses.formControl}>
-						<ListItem
-							button={true}
-							onClick={() => setShowRoads(!showRoads)}
-							className={formClasses.listItem}
-						>
-							<ListItemText primary={'Roads'} className={formClasses.listItemText} />
-							<Tooltip
-								title={
-									<React.Fragment>
-										<a href={'https://wiki.openstreetmap.org/wiki/Key:highway'} target={'_blank'}>
-											{'Learn more'}
-										</a>
-										<span>{' about OpenStreetMap roads'}</span>
-									</React.Fragment>
-								}
-								interactive={true}
-								placement={'bottom-start'}
-								arrow={true}
-							>
-								<Chip size={'small'} label={selectedRoadsSet.size} />
-							</Tooltip>
-							{showRoads ? <ExpandMore edge={'end'} /> : <ExpandLess edge={'end'} />}
-						</ListItem>
-						<Collapse in={showRoads} className={formClasses.collapse}>
-							<FormGroup>
-								{roadOptions.map(({ label, name }) => (
-									<FormControlLabel
-										key={name}
-										control={
-											<Checkbox
-												key={name}
-												name={name}
-												checked={selectedRoadsSet.has(name)}
-												color={'primary'}
-												onChange={handleSetRoads}
-											/>
-										}
-										label={label}
+				{isUserAuthorized && <React.Fragment>
+					<div className={styles.sectionWrapper}>
+						<div className={styles.fieldWrapper}>
+							<TextField
+								name={'owner'}
+								label={'Organization'}
+								value={owner}
+								onChange={(e) => setOwner(e.target.value)}
+								fullWidth={true}
+								variant={'outlined'}
+							/>
+						</div>
+						<div className={styles.fieldWrapper}>
+							<Autocomplete
+								id={'dataset'}
+								open={isDatasetsOpen}
+								disabled={!owner}
+								onOpen={() => {
+									setIsDatasetsOpen(true);
+								}}
+								onClose={() => {
+									setIsDatasetsOpen(false);
+								}}
+								value={dataset}
+								onChange={(e, newValue) => setDataset(newValue)}
+								isOptionEqualToValue={(option, value) => option.name === value.name}
+								getOptionLabel={(option) => option.name}
+								options={datasets}
+								loading={isDatasetsLoading}
+								renderInput={(params) => (
+									<TextField
+										{...params}
+										variant={'outlined'}
+										label={'Dataset'}
+										InputProps={{
+											...params.InputProps,
+											endAdornment: (
+												<React.Fragment>
+													{isDatasetsLoading ? (
+														<CircularProgress color={'inherit'} size={20} />
+													) : null}
+													{params.InputProps.endAdornment}
+												</React.Fragment>
+											),
+										}}
 									/>
-								))}
-							</FormGroup>
-						</Collapse>
-					</FormControl>
-				</div>
-				<div className={styles.sectionWrapper}>
-					<FormControl component={'fieldset'} className={formClasses.formControl}>
-						<ListItem
-							button={true}
-							onClick={() => setShowSettings(!showSettings)}
-							className={formClasses.listItem}
+								)}
+							/>
+						</div>
+						<div className={styles.fieldWrapper}>
+							<Autocomplete
+								id={'version'}
+								open={isVersionsOpen}
+								disabled={!owner || !dataset}
+								onOpen={() => {
+									setIsVersionsOpen(true);
+								}}
+								onClose={() => {
+									setIsVersionsOpen(false);
+								}}
+								value={version}
+								onChange={(e, newValue) => setVersion(newValue)}
+								isOptionEqualToValue={(option, value) => option.tag === value.tag}
+								getOptionLabel={(option) => option.tag}
+								options={versions}
+								loading={isVersionsLoading}
+								renderInput={(params) => (
+									<TextField
+										{...params}
+										variant={'outlined'}
+										label={'Version'}
+										InputProps={{
+											...params.InputProps,
+											endAdornment: (
+												<React.Fragment>
+													{isVersionsLoading ? (
+														<CircularProgress color={'inherit'} size={20} />
+													) : null}
+													{params.InputProps.endAdornment}
+												</React.Fragment>
+											),
+										}}
+									/>
+								)}
+							/>
+						</div>
+						<div className={styles.fieldWrapper}>
+							<Autocomplete
+								id={'table'}
+								open={isTablesOpen}
+								disabled={!owner || !dataset || !version}
+								onOpen={() => {
+									setIsTablesOpen(true);
+								}}
+								onClose={() => {
+									setIsTablesOpen(false);
+								}}
+								value={table}
+								onChange={(e, newValue) => setTable(newValue)}
+								isOptionEqualToValue={(option, value) => option.name === value.name}
+								getOptionLabel={(option) => option.name}
+								options={tables}
+								loading={isTablesLoading}
+								renderInput={(params) => (
+									<TextField
+										{...params}
+										variant={'outlined'}
+										label={'Primary input table'}
+										InputProps={{
+											...params.InputProps,
+											endAdornment: (
+												<React.Fragment>
+													{isTablesLoading ? (
+														<CircularProgress color={'inherit'} size={20} />
+													) : null}
+													{params.InputProps.endAdornment}
+												</React.Fragment>
+											),
+										}}
+									/>
+								)}
+							/>
+						</div>
+					</div>
+					<div className={styles.sectionWrapper}>
+						<div className={styles.fieldWrapper}>
+							<Autocomplete
+								id={'variable'}
+								open={isVariablesOpen}
+								disabled={!owner || !dataset || !version || !table}
+								onOpen={() => {
+									setIsVariablesOpen(true);
+								}}
+								onClose={() => {
+									setIsVariablesOpen(false);
+								}}
+								value={variable}
+								onChange={(e, newValue) => setVariable(newValue)}
+								isOptionEqualToValue={(option, value) => option.name === value.name}
+								getOptionLabel={(option) => option.name}
+								options={variables}
+								loading={isVariablesLoading}
+								renderInput={(params) => (
+									<TextField
+										{...params}
+										variant={'outlined'}
+										label={'Entity ID'}
+										InputProps={{
+											...params.InputProps,
+											endAdornment: (
+												<React.Fragment>
+													{isVariablesLoading ? (
+														<CircularProgress color={'inherit'} size={20} />
+													) : null}
+													{params.InputProps.endAdornment}
+												</React.Fragment>
+											),
+										}}
+									/>
+								)}
+							/>
+						</div>
+						<div className={styles.fieldWrapper}>
+							<Autocomplete
+								multiple
+								id={'quasiIdentifier'}
+								open={isQuasiIdentifiersOpen}
+								disabled={!owner || !dataset || !version || !table}
+								onOpen={() => {
+									setIsQuasiIdentifiersOpen(true);
+								}}
+								onClose={() => {
+									setIsQuasiIdentifiersOpen(false);
+								}}
+								value={selectedQuasiIdentifiers}
+								onChange={(e, newValue) => setSelectedQuasiIdentifiers(newValue)}
+								isOptionEqualToValue={(option, value) => `${option.table.name}_${option.variable.name}` === `${value.table.name}_${value.variable.name}`}
+								getOptionLabel={(option) => `${option.variable.name} in ${option.table.name}`}
+								options={filteredQuasiIdentifiers}
+								loading={isQuasiIdentifiersLoading}
+								renderInput={(params) => (
+									<TextField
+										{...params}
+										variant={'outlined'}
+										label={'Quasi-identifiers'}
+										InputProps={{
+											...params.InputProps,
+											endAdornment: (
+												<React.Fragment>
+													{isQuasiIdentifiersLoading ? (
+														<CircularProgress color={'inherit'} size={20} />
+													) : null}
+													{params.InputProps.endAdornment}
+												</React.Fragment>
+											),
+										}}
+									/>
+								)}
+							/>
+						</div>
+					</div>
+					<div className={styles.sectionWrapper}>
+						<Button variant={'outlined'} onClick={handleClearAll}>{'Clear all'}</Button>
+					</div>
+					<div className={styles.sectionWrapper}>
+						<LoadingButton
+							variant={'contained'}
+							disabled={!owner || !dataset || !version || !table || !variable || !selectedQuasiIdentifiers?.length}
+							loading={isCalculatingRisk}
+							onClick={handleCalculateRisk}
 						>
-							<ListItemText primary={'Settings'} className={formClasses.listItemText} />
-							{showSettings ? <ExpandMore edge={'end'} /> : <ExpandLess edge={'end'} />}
-						</ListItem>
-						<Collapse in={showSettings} className={formClasses.collapse}>
-							<FormGroup>
-								<FormControlLabel
-									control={
-										<TextField
-											name={'coverageTravelTime'}
-											label={'Coverage travel time (mins)'}
-											value={coverageTravelTime}
-											onChange={handleSetCoverageTravelTime}
-											fullWidth={true}
-											variant={'outlined'}
-										/>
-									}
-									className={formClasses.formControlLabel}
-								/>
-								<FormControlLabel
-									control={
-										<RadioGroup
-											aria-label={'Resolution'}
-											name={'resolution'}
-											value={resolution}
-											color={'primary'}
-											onChange={handleSetResolution}
-											className={formClasses.radioGroup}
-										>
-											<FormHelperText className={formClasses.helperText}>
-												{'Resolution'}
-											</FormHelperText>
-											<FormControlLabel control={<Radio />} value={'1024'} label={'1024'} />
-											<FormControlLabel control={<Radio />} value={'2048'} label={'2048'} />
-											<FormControlLabel control={<Radio />} value={'3072'} label={'3072'} />
-										</RadioGroup>
-									}
-									className={formClasses.formControlLabel}
-								/>
-								<FormControlLabel
-									control={
-										<TextField
-											name={'colorScaleBucketCount'}
-											label={'Color scale buckets'}
-											value={colorScaleBucketCount}
-											onChange={handleSetColorScaleBucketCount}
-											fullWidth={true}
-											variant={'outlined'}
-										/>
-									}
-									className={formClasses.formControlLabel}
-								/>
-								<FormControlLabel
-									control={
-										<Switch
-											name={'showPopulationDensity'}
-											checked={showPopulationDensity}
-											onChange={handleSetShowPopulationDensity}
-										/>
-									}
-									label={'Show population density'}
-									className={formClasses.formControlLabel}
-								/>
-								<FormControlLabel
-									control={
-										<Switch
-											name={'hasDiscreteColorScale'}
-											checked={hasDiscreteColorScale}
-											onChange={handleSetHasDiscreteColorScale}
-										/>
-									}
-									label={'Discrete color scale'}
-									className={formClasses.formControlLabel}
-								/>
-								<FormControlLabel
-									control={
-										<Switch name={'hideRoads'} checked={hideRoads} onChange={handleSetHideRoads} />
-									}
-									label={'Hide roads (better performance)'}
-									className={formClasses.formControlLabel}
-								/>
-								<FormControlLabel
-									control={
-										<Switch
-											name={'useOsmRoadSpeed'}
-											checked={useOsmRoadSpeed}
-											onChange={handleSetUseOsmRoadSpeed}
-										/>
-									}
-									label={'Use OSM road speeds'}
-									className={formClasses.formControlLabel}
-								/>
-								<FormControlLabel
-									control={
-										<Switch
-											name={'showPoints'}
-											checked={showPoints}
-											onChange={handleSetShowPoints}
-										/>
-									}
-									label={'Show points'}
-									className={formClasses.formControlLabel}
-								/>
-								<FormControlLabel
-									control={
-										<TextField
-											name={'pointRadius'}
-											label={'Point radius (px)'}
-											value={pointRadius}
-											onChange={handleSetPointRadius}
-											fullWidth={true}
-											variant={'outlined'}
-										/>
-									}
-									className={formClasses.formControlLabel}
-								/>
-							</FormGroup>
-						</Collapse>
-					</FormControl>
-				</div>
+							{'Calculate re-identification risk'}
+						</LoadingButton>
+					</div>
+				</React.Fragment>}
 			</div>
 		</div>
 	);

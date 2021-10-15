@@ -1,0 +1,97 @@
+.wrapper{
+    width: 600px;
+    height: 400px;
+    position: relative;
+}
+
+.descriptionWrapper{
+    width: 419px;
+    margin-bottom: 30px;
+}
+
+.downloadButton{
+    position: absolute;
+    bottom: 15px;
+    right: 15px;
+}
+
+
+.loading{
+    position: relative;
+    &:after {
+        left: 50%;
+        top: 50%;
+        content: 'Loading';
+        position: absolute;
+    }
+}
+
+.histogram {
+    display: block;
+    user-select: none;
+
+    width: 100%;
+    height: 50px;
+}
+
+.bars {
+    height: 100%;
+}
+.bar {
+    fill: var(--color-grey2);
+    rx: 1px;
+    ry: 1px;
+}
+
+.barOverlay {
+    opacity: 0;
+}
+
+.axis {
+    path {
+        stroke: var(--color-grey4);
+    }
+}
+
+.xAxis {
+    text {
+        display: none;
+    }
+}
+
+:global(.tick) line {
+    display: none;
+}
+
+&.isComparison {
+    .bar {
+        fill: var(--color-grey4);
+    }
+}
+.bar.hover {
+    fill: var(--color-customLight);
+}
+
+.tooltip {
+    background: var(--color-base) !important;
+    min-width: 0 !important;
+    padding: 0 !important;
+}
+
+.row {
+    padding: 5px 10px;
+}
+.value {
+    display: inline-block;
+    color: var(--color-primaryOverlay);
+}
+.label {
+    display: inline-block;
+    color: var(--color-grey3);
+    padding-right: 1rem;
+}
+.divider {
+    width: 100%;
+    height: 1px;
+    background-color: var(--color-grey2);
+}

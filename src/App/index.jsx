@@ -3,10 +3,10 @@ import React, { useEffect, useState, useCallback } from 'react';
 import useTimeout from 'helpers/useTimeout';
 import { withRouter } from 'react-router-dom';
 
-import Map from '../Map';
+import Graph from '../Graph';
 import Settings from '../Settings';
 import Typography from '@material-ui/core/Typography';
-import Button from '@material-ui/core/Button';
+import Button from '@mui/material/Button';
 
 import { makeStyles, createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
 import { grey } from '@material-ui/core/colors';
@@ -14,15 +14,26 @@ import { grey } from '@material-ui/core/colors';
 import { getCredentials, login, logout } from 'helpers/auth';
 import getTables from 'helpers/getTables';
 import getCollection from 'helpers/getCollection';
-import getBigQueryMap from '../Map/BigQuery/getMap';
+import getBigQueryMap from '../Graph/BigQuery/getMap';
+
+import computeRisk from 'helpers/computeRisk';
+
+import headerSVG from 'assets/header.svg';
+import labsSVG from 'assets/labs.svg';
 
 import * as styles from './styles.css';
+import {
+	query,
+	authorize,
+	deauthorize,
+	isAuthorized,
+} from 'redivis';
 
 const INPUT_TIMEOUT_MS = 1000;
 const MAP_TIMEOUT_MS = 1000;
 
 const DEFAULT_OWNER = 'Demo';
-const DEFAULT_PARENT_ENTITY = 'geospatial_coverage_analysis';
+const DEFAULT_PARENT_ENTITY = null;
 const DEFAULT_TABLE = 'california_hospitals';
 const DEFAULT_REGION = 'United States';
 const DEFAULT_SUBREGION = 'California';
@@ -110,25 +121,37 @@ function App({ history }) {
 		}
 	}, []);
 
-	const accessToken = getCredentials();
+	const [isUserAuthorized, setIsUserAuthorized] = useState(false);
 
-	const handleSignIn = useCallback(async () => {
-		try {
-			await login();
-			window.location.assign(window.location.href);
-		} catch (e) {
-			console.error(e);
-		}
+	const handleSetIsUserAuthorized = useCallback(
+		async () => {
+			const nextIsUserAuthorized = await isAuthorized();
+			setIsUserAuthorized(nextIsUserAuthorized);
+		},
+		[],
+	);
+
+	useEffect(() => {
+		handleSetIsUserAuthorized();
 	}, []);
 
-	const handleSignOut = useCallback(async () => {
-		logout();
-		window.location.assign(window.location.href);
+	const handleAuthorize = useCallback(async () => {
+		await authorize();
+		handleSetIsUserAuthorized();
+	}, [authorize]);
+
+	const handleUnauthorize = useCallback(async () => {
+		await deauthorize()
+		handleSetIsUserAuthorized();
 	}, []);
 
 	const [owner, setOwner] = useState(DEFAULT_OWNER);
+	const [dataset, setDataset] = useState(null);
+	const [version, setVersion] = useState(null);
 	const [parentEntity, setParentEntity] = useState(DEFAULT_PARENT_ENTITY);
-	const [table, setTable] = useState(DEFAULT_TABLE);
+	const [table, setTable] = useState(null);
+	const [variable, setVariable] = useState(null);
+
 
 	const [region, setRegion] = useState(DEFAULT_REGION);
 	const [subregion, setSubregion] = useState(DEFAULT_SUBREGION);
@@ -136,39 +159,22 @@ function App({ history }) {
 	const [longitudeIndicator, setLongitudeIndicator] = useState(DEFAULT_LONGITUDE_INDICATOR);
 	const [roads, setRoads] = useState(DEFAULT_ROADS);
 
+	const [datasets, setDatasets] = useState([]);
+	const [versions, setVersions] = useState([]);
 	const [tables, setTables] = useState([]);
+	const [variables, setVariables] = useState([]);
+
+	const [selectedQuasiIdentifiers, setSelectedQuasiIdentifiers] = useState([]);
+	const [variablesByTableName, setVariablesByTableName] = useState({});
+
+	const [queryResponse, setQueryResponse] = useState(null);
+
 	const [isFetchingTables, setIsFetchingTables] = useState(false);
 	const [tablesError, setTablesError] = useState(null);
 
 	const [collection, setCollection] = useState(null);
 	const [isFetchingCollection, setIsFetchingCollection] = useState(false);
 	const [collectionError, setCollectionError] = useState(null);
-
-	const fetchTables = useCallback(async () => {
-		if (owner && parentEntity) {
-			try {
-				setIsFetchingTables(true);
-				setTablesError(null);
-				const tables = await getTables(`${owner}.${parentEntity}`);
-				setTables(tables);
-			} catch (e) {
-				setTablesError(e);
-				setTables([]);
-			} finally {
-				setIsFetchingTables(false);
-			}
-		}
-	}, [owner, parentEntity]);
-
-	const [setTablesTimeout, clearTablesTimeout] = useTimeout(fetchTables, INPUT_TIMEOUT_MS);
-
-	useEffect(() => {
-		clearTablesTimeout();
-		setTablesTimeout();
-		return () => {
-			clearTablesTimeout();
-		};
-	}, [fetchTables]);
 
 	const setLatAndLongIndicators = useCallback((collection) => {
 		const { latitude, longitude } = guessLatAndLongIndicators(collection);
@@ -242,6 +248,12 @@ function App({ history }) {
 	const [coverageTravelTime, setCoverageTravelTime] = useState(DEFAULT_COVERAGE_TRAVEL_TIME);
 	const [colorScaleBucketCount, setColorScaleBucketCount] = useState(DEFAULT_COLOR_SCALE_BUCKET_COUNT);
 
+	const handleCalculateRisk = useCallback(async () => {
+		const nextQueryResponse = await computeRisk(variable, selectedQuasiIdentifiers, variablesByTableName, table, tables, dataset, owner);
+		setQueryResponse(nextQueryResponse);
+		console.log('response', nextQueryResponse);
+	}, [variable, selectedQuasiIdentifiers, variablesByTableName, table, tables, dataset, owner])
+
 	const [resolution, setResolution] = useState(DEFAULT_RESOLUTION);
 	const [hideRoads, setHideRoads] = useState(DEFAULT_HIDE_ROADS);
 	const [useOsmRoadSpeed, setUseOsmRoadSpeed] = useState(DEFAULT_USE_OSM_ROAD_SPEED);
@@ -251,41 +263,34 @@ function App({ history }) {
 	const [pointRadius, setPointRadius] = useState(DEFAULT_POINT_RADIUS);
 	const [colorScale, setColorScale] = useState(DEFAULT_COLOR_SCALE);
 
-	const titleClasses = useTitleStyles();
-
 	const renderHeader = () => {
 		return (
 			<div className={styles.headerWrapper}>
 				<div className={styles.header}>
 					<div className={styles.titleWrapper}>
-						<Typography className={titleClasses.root} component={'h4'}>
-							{'Redivis Labs'}
-						</Typography>
-						<Typography className={titleClasses.subtitle} component={'h4'}>
-							{'Geospatial coverage analyzer'}
-						</Typography>
+						<div className={styles.headerLogo} style={{ height: 33, width: 133, backgroundImage: `url(data:image/svg+xml;base64,${btoa(headerSVG)})` }} />
+						<div style={{ height: 30, width: 70, backgroundImage: `url(data:image/svg+xml;base64,${btoa(labsSVG)})` }} />
+						<div className={styles.divider} />
+						<span>{'K-anonymity computation'}</span>
 					</div>
 					<div className={styles.linkWrapper}>
 						<div className={styles.buttonWrapper}>
 							<Button
 								size={'small'}
-								href={`https://github.com/redivis/geo-coverage#readme`}
+								href={`https://github.com/redivis/k-anonymity`}
 								target={'_blank'}
 							>
-								{'Documentation'}
+								{'Github'}
 							</Button>
 						</div>
 						<div className={styles.buttonWrapper}>
-							{!accessToken && (
-								<Button size={'small'} variant={'contained'} color={'primary'} onClick={handleSignIn}>
-									{'Sign in to Redivis'}
-								</Button>
-							)}
-							{!!accessToken && (
-								<Button size={'small'} onClick={handleSignOut}>
-									{'Sign out'}
-								</Button>
-							)}
+							<Button
+								size={'small'}
+								href={`https://redivis.com`}
+								target={'_blank'}
+							>
+								{'Redivis'}
+							</Button>
 						</div>
 					</div>
 				</div>
@@ -297,74 +302,44 @@ function App({ history }) {
 		return (
 			<ThemeProvider theme={theme}>
 				<div className={styles.bodyWrapper}>
-					<div className={styles.mapWrapper}>
+					<div className={styles.graphWrapper}>
 						<div className={styles.settings}>
 							<Settings
+								isUserAuthorized={isUserAuthorized}
+								onAuthorize={handleAuthorize}
+								onDeauthorize={handleUnauthorize}
 								owner={owner}
 								setOwner={setOwner}
+								dataset={dataset}
+								setDataset={setDataset}
+								datasets={datasets}
+								setDatasets={setDatasets}
+								version={version}
+								setVersion={setVersion}
+								versions={versions}
+								setVersions={setVersions}
 								parentEntity={parentEntity}
 								setParentEntity={setParentEntity}
 								table={table}
 								setTable={setTable}
-								region={region}
-								setRegion={setRegion}
-								subregion={subregion}
-								setSubregion={setSubregion}
-								latitudeIndicator={latitudeIndicator}
-								setLatitudeIndicator={setLatitudeIndicator}
-								longitudeIndicator={longitudeIndicator}
-								setLongitudeIndicator={setLongitudeIndicator}
-								roads={roads}
-								setRoads={setRoads}
-								coverageTravelTime={coverageTravelTime}
-								setCoverageTravelTime={setCoverageTravelTime}
-								colorScaleBucketCount={colorScaleBucketCount}
-								setColorScaleBucketCount={setColorScaleBucketCount}
-								resolution={resolution}
-								setResolution={setResolution}
-								hideRoads={hideRoads}
-								useOsmRoadSpeed={useOsmRoadSpeed}
-								showPoints={showPoints}
-								setHideRoads={setHideRoads}
-								setUseOsmRoadSpeed={setUseOsmRoadSpeed}
-								setShowPoints={setShowPoints}
-								showPopulationDensity={showPopulationDensity}
-								setShowPopulationDensity={setShowPopulationDensity}
-								hasDiscreteColorScale={hasDiscreteColorScale}
-								setHasDiscreteColorScale={setHasDiscreteColorScale}
-								pointRadius={pointRadius}
-								setPointRadius={setPointRadius}
-								colorScale={colorScale}
-								setColorScale={setColorScale}
 								tables={tables}
-								isFetchingTables={isFetchingTables}
-								tablesError={tablesError}
-								collection={collection}
-								isFetchingCollection={isFetchingCollection}
-								collectionError={collectionError}
-								isFetchingMap={isFetchingMap}
-								mapDataError={mapDataError}
+								setTables={setTables}
+								variable={variable}
+								setVariable={setVariable}
+								variables={variables}
+								setVariables={setVariables}
+								selectedQuasiIdentifiers={selectedQuasiIdentifiers}
+								setSelectedQuasiIdentifiers={setSelectedQuasiIdentifiers}
+								variablesByTableName={variablesByTableName}
+								setVariablesByTableName={setVariablesByTableName}
+								onCalculateRisk={handleCalculateRisk}
 							/>
 						</div>
-						<div className={styles.map}>
-							<Map
-								collection={collection}
-								mapData={mapData}
-								region={region}
-								subregion={subregion}
-								latitudeIndicator={latitudeIndicator}
-								longitudeIndicator={longitudeIndicator}
-								roads={roads}
-								coverageTravelTime={coverageTravelTime}
-								colorScaleBucketCount={colorScaleBucketCount}
-								resolution={resolution}
-								hideRoads={hideRoads}
-								useOsmRoadSpeed={useOsmRoadSpeed}
-								showPoints={showPoints}
-								showPopulationDensity={showPopulationDensity}
-								hasDiscreteColorScale={hasDiscreteColorScale}
-								pointRadius={pointRadius}
-								colorScale={colorScale}
+						<div className={styles.graph}>
+							<Graph
+								queryResponse={queryResponse}
+								dataset={dataset}
+								variable={variable}
 							/>
 						</div>
 					</div>

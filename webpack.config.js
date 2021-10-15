@@ -12,6 +12,7 @@ module.exports = function ({ env } = {}) {
 			path: `${__dirname}/dist`,
 			filename: '[name].js',
 		},
+		target: 'web',
 		mode: env === 'development' ? 'development' : 'production',
 		plugins: [
 			new webpack.DefinePlugin({
@@ -37,16 +38,12 @@ module.exports = function ({ env } = {}) {
 											targets: ['safari 14.0', 'firefox 84', 'chrome 88'],
 											modules: false,
 											bugfixes: true, // Note: will be default in Babel 8
-											useBuiltIns: 'usage',
+											useBuiltIns: false,
 											corejs: { version: 3, proposals: true },
 										},
 									],
 								],
-								plugins: [
-									require.resolve('@babel/plugin-proposal-class-properties'),
-									require.resolve('@babel/plugin-proposal-export-namespace-from'),
-									require.resolve('@babel/plugin-proposal-export-default-from'),
-								],
+								plugins: [require.resolve('@babel/plugin-proposal-export-default-from')],
 							},
 						},
 					],
@@ -79,11 +76,18 @@ module.exports = function ({ env } = {}) {
 						{ loader: 'css-loader' },
 					],
 				},
+				{
+					test: /\.svg$/,
+					loader: 'text-loader',
+				}
 			],
 		},
 		resolve: {
 			modules: [`${__dirname}/src`, `node_modules`],
 			extensions: ['*', '.js', '.jsx'],
+			alias: {
+		      '@mui/styled-engine': '@mui/styled-engine-sc'
+		    },
 		},
 	};
 
