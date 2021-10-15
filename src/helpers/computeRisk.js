@@ -23,7 +23,9 @@ function getRiskQuery(variable, quasiIdentifiers, variablesByTableName, table, t
 			quasiIdentifier.table.name === matchedTable.name
 		);
 	})
-	console.log('matched/filtered matched tables', matchedTables, filteredMatchedTables);
+	
+	console.log('matched tables (all tables with primary variable)', matchedTables);
+	console.log('filterd matched tables (matched tables (all tables w 1+ quasi identifier tables):', filteredMatchedTables)
 
 	const INT64_MIN = (2 ** 64 / 2) * -1;
 
@@ -98,9 +100,6 @@ const sampleData = [
 	{ bucket: 7, record_count: 1000 },
 	{ bucket: 8, record_count: 1000 },
 	{ bucket: 9, record_count: 1000 },
-	{ bucket: '(10, 15]', record_count: 1000 },
-	{ bucket: '(15, 20]', record_count: 1000 },
-	{ bucket: '>20', record_count: 1000 },
 ]
 
 export default async function computeRisk(variable, quasiIdentifiers, variablesByTableName, table, tables, dataset, organizationIdentifier) {

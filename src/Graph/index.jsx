@@ -39,13 +39,13 @@ export default function Graph({
 		const totalRecordCount = queryResponse.reduce((totalRows, {bucket, record_count}) => totalRows += record_count, 0);
 		const percent = Math.round(droppedRecordCount / totalRecordCount * 1e7) / 1e5;
 
-		return `
-			${percent}% (~${droppedRecordCount} observations) of unique ${variable?.name} in "${dataset?.name}" have a k-anonymity value under 10, and may be considered re-identifiable.\n\n
-			
-			A k-anonymity value of 10 means that a given entity is indistinguishable from at least 9 other values, given the quasi-identifiers provided.\n\n
-			
-			This table's lowest k-anonymity value is ${Math.min(...queryResponse.map(({bucket}) => isNaN(bucket) ? Infinity : bucket))}\n\n
-		`;
+		return (
+			<>
+				<p>{`${percent}% of this table's records (${totalRecordCount}) have a k-anonymity value under 10`}</p>
+				<p>{`A k-anonymity value of 10 means that a given entity is indistinguishable from at least 9 other values, given the quasi-identifiers provided.`}</p>
+				<p>{`This table's lowest k-anonymity value is ${Math.min(...queryResponse.map(({bucket}) => isNaN(bucket) ? Infinity : bucket))}`}</p>
+			</>
+		);
 
 	}, [queryResponse, dataset, variable])
 
