@@ -4,7 +4,7 @@ import { withRouter } from 'react-router-dom';
 import Graph from '../Graph';
 import Settings from '../Settings';
 import Button from '@mui/material/Button';
-import {  createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
+import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
 
 import computeRisk from '../helpers/computeRisk';
 
@@ -16,6 +16,14 @@ import {
 } from 'redivis';
 
 const DEFAULT_OWNER = 'Demo';
+const DEFAULT_DATASET = { name: 'CMS 2014 Medicare Data' };
+const DEFAULT_VERSION = null;
+const DEFAULT_TABLE = { name: 'Inpatient charges' };
+const DEFAULT_VARIABLE = { name: 'provider_id' };
+const DEFAULT_VARIABLES_BY_TABLE_NAME = {
+	'Inpatient charges': [DEFAULT_VARIABLE]
+};
+const DEFAULT_SELECTED_QUASI_IDENTIFIERS = [{ variable: { name: 'provider_state' }, table: DEFAULT_TABLE }];
 
 const theme = createMuiTheme({
 	palette: {
@@ -69,18 +77,18 @@ function App({ history }) {
 	}, []);
 
 	const [owner, setOwner] = useState(DEFAULT_OWNER);
-	const [dataset, setDataset] = useState(null);
-	const [version, setVersion] = useState(null);
-	const [table, setTable] = useState(null);
-	const [variable, setVariable] = useState(null);
+	const [dataset, setDataset] = useState(DEFAULT_DATASET);
+	const [version, setVersion] = useState(DEFAULT_VERSION);
+	const [table, setTable] = useState(DEFAULT_TABLE);
+	const [variable, setVariable] = useState(DEFAULT_VARIABLE);
 
 	const [datasets, setDatasets] = useState([]);
 	const [versions, setVersions] = useState([]);
 	const [tables, setTables] = useState([]);
 	const [variables, setVariables] = useState([]);
 
-	const [selectedQuasiIdentifiers, setSelectedQuasiIdentifiers] = useState([]);
-	const [variablesByTableName, setVariablesByTableName] = useState({});
+	const [selectedQuasiIdentifiers, setSelectedQuasiIdentifiers] = useState(DEFAULT_SELECTED_QUASI_IDENTIFIERS);
+	const [variablesByTableName, setVariablesByTableName] = useState(DEFAULT_VARIABLES_BY_TABLE_NAME);
 
 	const [queryResponse, setQueryResponse] = useState(null);
 
