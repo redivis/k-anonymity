@@ -14,7 +14,7 @@ export default async function listDatasets(shortName) {
 			loadedDatasets = response;
 			organizationsCache[shortName.toLowerCase()] = loadedDatasets;
 		} catch (e){
-			console.error('Could not list datasets')
+			console.error(e)
 		}
 		return loadedDatasets;
 	}

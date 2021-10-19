@@ -115,93 +115,116 @@ export default function Settings({
 		};
 	}, [isVersionsLoading]);
 
-	useEffect(() => {
-		let active = true;
-
-		if (!isQuasiIdentifiersLoading) {
-			return undefined;
+	const handleOwnerChange = useCallback((nextOwner) => {
+		if (nextOwner !== owner){
+			setOwner(nextOwner);
+			setDatasets([]);
+			setDataset(null);
+			setTables([]);
+			setTable(null);
+			setVariablesByTableName({});
+			setVariables([]);
+			setVariable(null);
+			setFilteredQuasiIdentifiers([]);
+			setSelectedQuasiIdentifiers([]);
 		}
+	}, [owner]);
 
-		(async () => {
-			if (active && owner && dataset) {
-				const nextVersions = await listVersions(dataset);
-				setVersions(nextVersions);
-			}
-		})();
-
-		return () => {
-			active = false;
-		};
-	}, [isVersionsLoading]);
-
-	useEffect(() => {
-		setDataset(null);
-		setVersion(null);
-		setTable(null);
-		setVariable(null);
-		setSelectedQuasiIdentifiers([]);
-		setDatasets([]);
-		setVersions([]);
-		setTables([]);
-		setVariables([]);
-		setVariablesByTableName({});
-		setFilteredQuasiIdentifiers([]);
-	}, [owner])
+	const handleDatasetChange = useCallback((e, nextDataset) => {
+		if (nextDataset?.name !== dataset?.name){
+			setDataset(nextDataset);
+			setTables([]);
+			setTable(null);
+			setVariablesByTableName({});
+			setVariables([]);
+			setVariable(null);
+			setFilteredQuasiIdentifiers([]);
+			setSelectedQuasiIdentifiers([]);
+		}
+	}, [dataset]);
 
 	useEffect(() => {
-		if (dataset){
+		if (owner && dataset){
 			(async () => {
-				const nextDataset = await getDataset(dataset);
+				const nextDataset = await getDataset(owner, dataset);
 				setDataset(nextDataset);
-				setVersion((nextDataset || {}).getProperty?.('currentVersion') || null);
+				setVersion((nextDataset || {}).getProperty?.('currentVersion') || (nextDataset || {}).getProperty?.('nextVersion') || null);
+				const nextTables = await listTables(nextDataset);
+				setTables(nextTables);
 			})()
 		} else {
+			setDataset(null);
 			setVersion(null);
 		}
 		setVersions([]);
-		setTable(null);
-		setTables([])
 	}, [dataset?.name])
+
+	const handleVersionChange = useCallback((e, nextVersion) => {
+		if (nextVersion?.tag !== version?.tag){
+			setVersion(nextVersion);
+			setTables([]);
+			setTable(null);
+			setVariablesByTableName({});
+			setVariables([]);
+			setVariable(null);
+			setFilteredQuasiIdentifiers([]);
+			setSelectedQuasiIdentifiers([]);
+		}
+	}, [version])
 
 	useEffect(() => {
 		if (owner && dataset && version){
 			(async () => {
 				let nextDataset = dataset;
-				if (dataset.getProperty?.('version')?.tag !== version.tag){
-					const nextDataset = await getDataset(dataset, { version: version.tag })
+				if (dataset.getProperty?.('version')?.tag !== version?.tag){
+					nextDataset = await getDataset(owner, dataset, { version: version.tag })
 					setDataset(nextDataset);
+					const nextTables = await listTables(nextDataset);
+					setTables(nextTables);
 				}
-				const nextTables = await listTables(nextDataset);
-				setTables(nextTables);
 			})()
 		} else {
 			setTables([])
 		}
 	}, [version])
 
-	useEffect(() => {
-		if (owner && dataset && version && table){
-			(async () => {
-				const nextVariablesByTableName = await listVariablesByTableName(table, tables);
-				setVariables(nextVariablesByTableName[table.name])
-				setVariablesByTableName(nextVariablesByTableName)
-			})()
+	const handleTableChange = useCallback((e, nextTable) => {
+		if (nextTable?.name !== table?.name){
+			setTable(nextTable);
+			setVariablesByTableName({});
+			setVariables([]);
+			setVariable(null);
+			setFilteredQuasiIdentifiers([]);
+			setSelectedQuasiIdentifiers([]);
 		}
-		setVariable(null)
 	}, [table])
 
 	useEffect(() => {
-		if (variable){
+		console.log('table effect', owner, dataset, version, table, tables);
+		if (owner && dataset && version && table && tables.length){
+			(async () => {
+				const nextVariablesByTableName = await listVariablesByTableName(tables);
+				setVariables(nextVariablesByTableName[table.name])
+				setVariablesByTableName(nextVariablesByTableName)
+			})()
+		} else {
+			setVariables([]);
+			setVariablesByTableName({});
+		}
+	}, [tables, table])
+
+	useEffect(() => {
+		if (table && tables.length){
 			const nextFilteredQuasiIdentifiers = formatQuasiIdentifiers(variable, table, tables, variablesByTableName);
 			setFilteredQuasiIdentifiers(nextFilteredQuasiIdentifiers);
 		} else {
 			setFilteredQuasiIdentifiers([]);
 		}
-	}, [variable]);
+	}, [variable, table, tables, variablesByTableName]);
 
 	const handleClearAll = useCallback(() => {
-		setOwner('');
-	}, [])
+		handleOwnerChange('');
+	}, [handleOwnerChange])
 
 	const handleCalculateRisk = useCallback(async () => {
 		setIsCalculatingRisk(true);
@@ -239,7 +262,7 @@ export default function Settings({
 								name={'owner'}
 								label={'Organization'}
 								value={owner}
-								onChange={(e) => setOwner(e.target.value)}
+								onChange={(e) => handleOwnerChange(e.target.value)}
 								fullWidth={true}
 								variant={'outlined'}
 							/>
@@ -256,7 +279,7 @@ export default function Settings({
 									setIsDatasetsOpen(false);
 								}}
 								value={dataset}
-								onChange={(e, newValue) => setDataset(newValue)}
+								onChange={handleDatasetChange}
 								isOptionEqualToValue={(option, value) => option.name === value.name}
 								getOptionLabel={(option) => option.name}
 								options={datasets}
@@ -293,7 +316,7 @@ export default function Settings({
 									setIsVersionsOpen(false);
 								}}
 								value={version}
-								onChange={(e, newValue) => setVersion(newValue)}
+								onChange={handleVersionChange}
 								isOptionEqualToValue={(option, value) => option.tag === value.tag}
 								getOptionLabel={(option) => option.tag}
 								options={versions}
@@ -330,7 +353,7 @@ export default function Settings({
 									setIsTablesOpen(false);
 								}}
 								value={table}
-								onChange={(e, newValue) => setTable(newValue)}
+								onChange={handleTableChange}
 								isOptionEqualToValue={(option, value) => option.name === value.name}
 								getOptionLabel={(option) => option.name}
 								options={tables}
@@ -439,7 +462,7 @@ export default function Settings({
 					<div className={styles.sectionWrapper}>
 						<LoadingButton
 							variant={'contained'}
-							disabled={!owner || !dataset || !version || !table || !variable || !selectedQuasiIdentifiers?.length}
+							disabled={!owner || !dataset || !version || !table || !selectedQuasiIdentifiers?.length}
 							loading={isCalculatingRisk}
 							onClick={handleCalculateRisk}
 						>
