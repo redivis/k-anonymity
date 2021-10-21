@@ -10,7 +10,6 @@ export default async function listDatasets(shortName) {
 		let loadedDatasets = [];
 		try {
 			const response = await organization(shortName).listDatasets();
-			console.log('listDatasets response', response);
 			loadedDatasets = response;
 			organizationsCache[shortName.toLowerCase()] = loadedDatasets;
 		} catch (e){

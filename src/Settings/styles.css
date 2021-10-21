@@ -5,11 +5,10 @@
 
 
 .sectionWrapper{
-    padding-bottom: 30px;
+    padding: 30px 50px;
 }
 .sectionWrapper:not(:first-child){
     border-top: 1px solid var(--color-grey4);
-    padding-top: 30px;
 }
 .sectionHeader{
     font-weight: bold;
@@ -22,4 +21,8 @@
 
 .fieldWrapper:not(:first-child){
     margin-top: 20px;
+}
+
+.clearAll{
+    width: 139px;
 }

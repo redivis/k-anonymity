@@ -2,7 +2,6 @@ export default async function listVariablesByTableName(tables) {
 	let loadedVariablesByTableName = {};
 	try {
 		const variableArrays = await Promise.all(tables.map((datasetTable) => datasetTable.listVariables()));
-		console.log('listVariables response', variableArrays);
 		for (let i = 0; i < variableArrays.length; i++){
 			loadedVariablesByTableName[tables[i].name] = variableArrays[i];
 		}

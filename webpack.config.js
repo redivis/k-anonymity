@@ -81,7 +81,6 @@ module.exports = function ({ env } = {}) {
 		resolve: {
 			modules: [`${__dirname}/src`, `node_modules`],
 			extensions: ['*', '.js', '.jsx'],
-			alias: { '@mui/styled-engine': '@mui/styled-engine-sc' },
 		},
 	};
 
