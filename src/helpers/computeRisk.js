@@ -23,9 +23,6 @@ function getRiskQuery(variable, quasiIdentifiers, variablesByTableName, table, t
 			quasiIdentifier.table.name === matchedTable.name
 		);
 	})
-	
-	console.log('matched tables (all tables with primary variable)', matchedTables);
-	console.log('filterd matched tables (matched tables (all tables w 1+ quasi identifier tables):', filteredMatchedTables)
 
 	const INT64_MIN = (2 ** 64 / 2) * -1;
 
@@ -105,7 +102,7 @@ const sampleData = [
 export default async function computeRisk(variable, quasiIdentifiers, variablesByTableName, table, tables, dataset, organizationIdentifier) {
 	// return sampleData;
 	const riskQuery = getRiskQuery(variable, quasiIdentifiers, variablesByTableName, table, tables, dataset, organizationIdentifier);
-	console.log('riskQuery', riskQuery);
+	console.log('--riskQuery--\n', riskQuery);
 	const queryResponse = await query(riskQuery).listRows();
 	return queryResponse;
 }

@@ -1,11 +1,11 @@
 import PropTypes from 'prop-types';
 import React, { useCallback, useState, useEffect } from 'react';
 
-import TextField from '@material-ui/core/TextField';
-import CircularProgress from '@material-ui/core/CircularProgress';
+import TextField from '@mui/material/TextField';
+import CircularProgress from '@mui/material/CircularProgress';
 import Autocomplete from '@mui/material/Autocomplete';
-import Button from '@mui/material/Button'
-import LoadingButton from '@mui/lab/LoadingButton';
+
+import { RedivisButtonText, RedivisButton } from '../helpers/Buttons';
 
 import getDataset from '../helpers/getDataset';
 import listDatasets from '../helpers/listDatasets';
@@ -200,7 +200,6 @@ export default function Settings({
 	}, [table])
 
 	useEffect(() => {
-		console.log('table effect', owner, dataset, version, table, tables);
 		if (owner && dataset && version && table && tables.length){
 			(async () => {
 				const nextVariablesByTableName = await listVariablesByTableName(tables);
@@ -244,14 +243,13 @@ export default function Settings({
 					{isUserAuthorized ?
 						(
 							<div>
-								<div className={styles.sectionHeader}>{'Authenticated as'}</div>
-								<div className={styles.sectionText}>{'username'}</div>
-								<Button className={styles.linkButton} onClick={onDeauthorize}>{'Remove authentication'}</Button>
+								<div className={styles.sectionHeader}>{'Logged in'}</div>
+								<RedivisButtonText onClick={onDeauthorize}>{'Remove authentication'}</RedivisButtonText>
 							</div>
 						)
 							:
 						(
-							<Button variant={'contained'} onClick={onAuthorize}>{'Authenticate with Redivis'}</Button>
+							<RedivisButton onClick={onAuthorize}>{'Authenticate with Redivis'}</RedivisButton>
 						)
 					}
 				</div>
@@ -455,19 +453,19 @@ export default function Settings({
 								)}
 							/>
 						</div>
+						<div className={styles.fieldWrapper}>
+							<RedivisButton type={'secondary'} onClick={handleClearAll} className={styles.clearAll}>{'Clear all'}</RedivisButton>
+						</div>
 					</div>
 					<div className={styles.sectionWrapper}>
-						<Button variant={'outlined'} onClick={handleClearAll}>{'Clear all'}</Button>
-					</div>
-					<div className={styles.sectionWrapper}>
-						<LoadingButton
-							variant={'contained'}
+						<RedivisButton
+							hasLoading={true}
 							disabled={!owner || !dataset || !version || !table || !selectedQuasiIdentifiers?.length}
 							loading={isCalculatingRisk}
 							onClick={handleCalculateRisk}
 						>
 							{'Calculate re-identification risk'}
-						</LoadingButton>
+						</RedivisButton>
 					</div>
 				</React.Fragment>}
 			</div>

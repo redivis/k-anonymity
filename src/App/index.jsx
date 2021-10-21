@@ -3,8 +3,8 @@ import { withRouter } from 'react-router-dom';
 
 import Graph from '../Graph';
 import Settings from '../Settings';
-import Button from '@mui/material/Button';
-import { createMuiTheme, ThemeProvider } from '@material-ui/core/styles';
+import Header from '../Header';
+import { createTheme, ThemeProvider } from '@mui/material/styles';
 
 import computeRisk from '../helpers/computeRisk';
 
@@ -25,7 +25,7 @@ const DEFAULT_VARIABLES_BY_TABLE_NAME = {
 };
 const DEFAULT_SELECTED_QUASI_IDENTIFIERS = [{ variable: { name: 'provider_state' }, table: DEFAULT_TABLE }];
 
-const theme = createMuiTheme({
+const theme = createTheme({
 	palette: {
 		primary: {
 			light: '#a88bc9',
@@ -40,8 +40,17 @@ const theme = createMuiTheme({
 			contrastText: '#ffffff',
 		},
 	},
+	shape: {
+		borderRadius: 2,
+	},
+	typography: {
+		fontFamily: 'Nunito Sans, sans-serif',
+		fontWeightLight: 600,
+		fontWeightRegular: 600,
+		fontWeightMedium: 600,
+		fontWeigthBold: 700,
+	}
 });
-
 
 function App({ history }) {
 	useEffect(() => {
@@ -51,6 +60,8 @@ function App({ history }) {
 			history.replace(`/${path}`);
 		}
 	}, []);
+
+	const [queryResponse, setQueryResponse] = useState(null);
 
 	const [isUserAuthorized, setIsUserAuthorized] = useState(false);
 
@@ -74,6 +85,7 @@ function App({ history }) {
 	const handleUnauthorize = useCallback(async () => {
 		await deauthorize()
 		handleSetIsUserAuthorized();
+		setQueryResponse(null);
 	}, []);
 
 	const [owner, setOwner] = useState(DEFAULT_OWNER);
@@ -90,54 +102,13 @@ function App({ history }) {
 	const [selectedQuasiIdentifiers, setSelectedQuasiIdentifiers] = useState(DEFAULT_SELECTED_QUASI_IDENTIFIERS);
 	const [variablesByTableName, setVariablesByTableName] = useState(DEFAULT_VARIABLES_BY_TABLE_NAME);
 
-	const [queryResponse, setQueryResponse] = useState(null);
-
-
 	const handleCalculateRisk = useCallback(async () => {
 		const nextQueryResponse = await computeRisk(variable, selectedQuasiIdentifiers, variablesByTableName, table, tables, dataset, owner);
 		setQueryResponse(nextQueryResponse);
-		console.log('response', nextQueryResponse);
 	}, [variable, selectedQuasiIdentifiers, variablesByTableName, table, tables, dataset, owner])
-
-
-	const renderHeader = () => {
-		return (
-			<div className={styles.headerWrapper}>
-				<div className={styles.header}>
-					<div className={styles.titleWrapper}>
-						<div className={styles.headerLogo} style={{ height: 33, width: 133, backgroundImage: `url(/k-anonymity/assets/header.svg)` }} />
-						<div style={{ height: 30, width: 70, backgroundImage: `url(/k-anonymity/assets/labs.svg)` }} />
-						<div className={styles.divider} />
-						<span>{'K-anonymity computation'}</span>
-					</div>
-					<div className={styles.linkWrapper}>
-						<div className={styles.buttonWrapper}>
-							<Button
-								size={'small'}
-								href={`https://github.com/redivis/k-anonymity`}
-								target={'_blank'}
-							>
-								{'Github'}
-							</Button>
-						</div>
-						<div className={styles.buttonWrapper}>
-							<Button
-								size={'small'}
-								href={`https://redivis.com`}
-								target={'_blank'}
-							>
-								{'Redivis'}
-							</Button>
-						</div>
-					</div>
-				</div>
-			</div>
-		);
-	};
 
 	const renderBody = () => {
 		return (
-			<ThemeProvider theme={theme}>
 				<div className={styles.bodyWrapper}>
 					<div className={styles.graphWrapper}>
 						<div className={styles.settings}>
@@ -179,15 +150,16 @@ function App({ history }) {
 						</div>
 					</div>
 				</div>
-			</ThemeProvider>
 		);
 	};
 
 	return (
-		<div className={styles.appWrapper}>
-			{renderHeader()}
-			{renderBody()}
-		</div>
+		<ThemeProvider theme={theme}>
+			<div className={styles.appWrapper}>
+				<Header title={'K-anonymity computation'} />
+				{renderBody()}
+			</div>
+		</ThemeProvider>
 	);
 }
 export default withRouter(App);
