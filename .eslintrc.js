@@ -58,6 +58,7 @@ module.exports = {
 		'no-with': 1,
 		'prefer-promise-reject-errors': 1,
 		'no-warning-comments': [1, { terms: ['todo', 'fixme'] }],
+		radix: 1,
 		// 'vars-on-top': 1, // TODO: consider
 		yoda: 1,
 
