@@ -7,11 +7,7 @@ import * as styles from './styles.css';
 
 const DEFAULT_BUCKET = 10;
 
-export default function Graph({
-	queryResponse,
-	dataset,
-	variable,
-}) {
+export default function Graph({ queryResponse, dataset }) {
 	const graphElement = useRef(null);
 	const graphRenderer = useRef(null);
 
@@ -58,7 +54,7 @@ export default function Graph({
 			</>
 		);
 
-	}, [queryResponse, dataset, variable, highlightedBucket])
+	}, [queryResponse, dataset, highlightedBucket])
 
 	return (
 		<div className={styles.graphWrapper}>
@@ -78,26 +74,7 @@ export default function Graph({
 	);
 }
 
-Map.propTypes = {
-	collection: PropTypes.object,
-	mapData: PropTypes.object,
-	region: PropTypes.string,
-	subregion: PropTypes.string,
-	latitudeIndicator: PropTypes.string,
-	longitudeIndicator: PropTypes.string,
-	roads: PropTypes.arrayOf(PropTypes.string),
-	mapState: PropTypes.object,
-	coverageTravelTime: PropTypes.string,
-	colorScaleBucketCount: PropTypes.string,
-	resolution: PropTypes.string,
-	showPoints: PropTypes.bool,
-	showPopulationDensity: PropTypes.bool,
-	hasDiscreteColorScale: PropTypes.bool,
-	pointRadius: PropTypes.string,
-	colorScale: PropTypes.arrayOf(PropTypes.string),
-	options: PropTypes.object,
-	settings: PropTypes.object,
-};
-
-Map.defaultProps = {
+Graph.propTypes = {
+	queryResponse: PropTypes.arrayOf(PropTypes.object),
+	dataset: PropTypes.object,
 };
