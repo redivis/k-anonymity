@@ -10,8 +10,12 @@ export default function Header({ title }) {
 			<div className={styles.header}>
 				<div className={styles.titleWrapper}>
 					<div className={styles.headerLogo} style={{ height: 33, width: 194, backgroundImage: `url(/k-anonymity/assets/header.svg)` }} />
-					<div className={styles.divider} />
-					<span>{title}</span>
+					{title && (
+						<>
+							<div className={styles.divider} />
+							<span>{title}</span>
+						</>
+					)}
 				</div>
 				<div className={styles.linkWrapper}>
 					<div className={styles.buttonWrapper}>

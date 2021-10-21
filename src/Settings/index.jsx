@@ -144,20 +144,22 @@ export default function Settings({
 	}, [dataset]);
 
 	useEffect(() => {
-		if (owner && dataset){
-			(async () => {
-				const nextDataset = await getDataset(owner, dataset);
-				setDataset(nextDataset);
-				setVersion((nextDataset || {}).getProperty?.('currentVersion') || (nextDataset || {}).getProperty?.('nextVersion') || null);
-				const nextTables = await listTables(nextDataset);
-				setTables(nextTables);
-			})()
-		} else {
-			setDataset(null);
-			setVersion(null);
+		if (isUserAuthorized){
+			if (owner && dataset){
+				(async () => {
+					const nextDataset = await getDataset(owner, dataset);
+					setDataset(nextDataset);
+					setVersion((nextDataset || {}).getProperty?.('currentVersion') || (nextDataset || {}).getProperty?.('nextVersion') || null);
+					const nextTables = await listTables(nextDataset);
+					setTables(nextTables);
+				})()
+			} else {
+				setDataset(null);
+				setVersion(null);
+			}
+			setVersions([]);
 		}
-		setVersions([]);
-	}, [dataset?.name])
+	}, [isUserAuthorized, dataset?.name])
 
 	const handleVersionChange = useCallback((e, nextVersion) => {
 		if (nextVersion?.tag !== version?.tag){
@@ -173,20 +175,22 @@ export default function Settings({
 	}, [version])
 
 	useEffect(() => {
-		if (owner && dataset && version){
-			(async () => {
-				let nextDataset = dataset;
-				if (dataset.getProperty?.('version')?.tag !== version?.tag){
-					nextDataset = await getDataset(owner, dataset, { version: version.tag })
-					setDataset(nextDataset);
-					const nextTables = await listTables(nextDataset);
-					setTables(nextTables);
-				}
-			})()
-		} else {
-			setTables([])
+		if (isUserAuthorized){
+			if (owner && dataset && version){
+				(async () => {
+					let nextDataset = dataset;
+					if (dataset.getProperty?.('version')?.tag !== version?.tag){
+						nextDataset = await getDataset(owner, dataset, { version: version.tag })
+						setDataset(nextDataset);
+						const nextTables = await listTables(nextDataset);
+						setTables(nextTables);
+					}
+				})()
+			} else {
+				setTables([])
+			}
 		}
-	}, [version])
+	}, [isUserAuthorized, version])
 
 	const handleTableChange = useCallback((e, nextTable) => {
 		if (nextTable?.name !== table?.name){
@@ -200,17 +204,19 @@ export default function Settings({
 	}, [table])
 
 	useEffect(() => {
-		if (owner && dataset && version && table && tables.length){
-			(async () => {
-				const nextVariablesByTableName = await listVariablesByTableName(tables);
-				setVariables(nextVariablesByTableName[table.name])
-				setVariablesByTableName(nextVariablesByTableName)
-			})()
-		} else {
-			setVariables([]);
-			setVariablesByTableName({});
+		if (isUserAuthorized){
+			if (owner && dataset && version && table && tables.length){
+				(async () => {
+					const nextVariablesByTableName = await listVariablesByTableName(tables);
+					setVariables(nextVariablesByTableName[table.name])
+					setVariablesByTableName(nextVariablesByTableName)
+				})()
+			} else {
+				setVariables([]);
+				setVariablesByTableName({});
+			}
 		}
-	}, [tables, table])
+	}, [isUserAuthorized, tables, table])
 
 	useEffect(() => {
 		if (table && tables.length){
@@ -474,9 +480,30 @@ export default function Settings({
 }
 
 Settings.propTypes = {
+	isUserAuthorized: PropTypes.bool,
+	onAuthorize: PropTypes.func,
+	onDeauthorize: PropTypes.func,
 	owner: PropTypes.string,
 	setOwner: PropTypes.func,
+	dataset: PropTypes.object,
+	setDataset: PropTypes.func,
+	datasets: PropTypes.arrayOf(PropTypes.object),
+	setDatasets: PropTypes.func,
+	version: PropTypes.object,
+	setVersion: PropTypes.func,
+	versions: PropTypes.arrayOf(PropTypes.object),
+	setVersions: PropTypes.func,
 	table: PropTypes.object,
 	setTable: PropTypes.func,
 	tables: PropTypes.arrayOf(PropTypes.object),
+	setTables: PropTypes.func,
+	variable: PropTypes.object,
+	setVariable: PropTypes.func,
+	variables: PropTypes.arrayOf(PropTypes.object),
+	setVariables: PropTypes.func,
+	selectedQuasiIdentifiers: PropTypes.arrayOf(PropTypes.object),
+	setSelectedQuasiIdentifiers: PropTypes.func,
+	variablesByTableName: PropTypes.object,
+	setVariablesByTableName: PropTypes.func,
+	onCalculateRisk: PropTypes.func,
 };

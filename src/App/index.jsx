@@ -145,7 +145,6 @@ function App({ history }) {
 							<Graph
 								queryResponse={queryResponse}
 								dataset={dataset}
-								variable={variable}
 							/>
 						</div>
 					</div>
