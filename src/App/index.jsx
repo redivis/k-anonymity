@@ -155,7 +155,7 @@ function App({ history }) {
 	return (
 		<ThemeProvider theme={theme}>
 			<div className={styles.appWrapper}>
-				<Header title={'K-anonymity computation'} />
+				<Header title={'Re-identification risk assessment'} />
 				{renderBody()}
 			</div>
 		</ThemeProvider>

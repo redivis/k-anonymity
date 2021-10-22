@@ -9,6 +9,7 @@ const textStyle = {
 	// color: 'primary.main', // TODO not working, though theme is defined in
 	color: '#7f3b97',
 	fontWeight: 600,
+	fontSize: 14,
 	'&:hover': {
 		bgcolor: 'unset',
 		boxShadow: 'none',
@@ -27,6 +28,7 @@ const secondaryStyle = {
 	boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.2)',
 	bgcolor: 'unset',
 	color: '#4d4c54',
+	fontSize: 14,
 	'&:hover': {
 		boxShadow: 'inset 0px 1px 3px rgba(0, 0, 0, 0.2);',
 		bgcolor: 'unset',
@@ -40,6 +42,7 @@ const primaryStyle = {
 	bgcolor: '#7f3b97',
 	width: '100%',
 	boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.2)',
+	fontSize: 14,
 	'&:hover': {
 		bgcolor: '#7f3b97',
 		boxShadow: 'inset 2px 2px 3px #5e1e75',

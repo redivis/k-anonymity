@@ -1,15 +1,25 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 
 import { RedivisButtonText } from '../helpers/Buttons';
 
 import * as styles from './styles.css';
 
 export default function Header({ title }) {
+	const renderHeaderLogo = useCallback(() => {
+		let headerLogo = (
+			<div className={styles.headerLogo} style={{ height: 33, width: 194, backgroundImage: `url(/k-anonymity/assets/header.svg)` }} />
+		)
+		if (title){
+			headerLogo = <a href={`https://labs.redivis.com`}>{headerLogo}</a>
+		}
+		return headerLogo;
+	}, [title]);
+
 	return (
 		<div className={styles.headerWrapper}>
 			<div className={styles.header}>
 				<div className={styles.titleWrapper}>
-					<div className={styles.headerLogo} style={{ height: 33, width: 194, backgroundImage: `url(/k-anonymity/assets/header.svg)` }} />
+					{renderHeaderLogo()}
 					{title && (
 						<>
 							<div className={styles.divider} />
@@ -39,4 +49,3 @@ export default function Header({ title }) {
 		</div>
 	);
 }
-// export default Header;
