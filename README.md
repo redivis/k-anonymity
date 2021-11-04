@@ -1,3 +1,3 @@
 # Redivis k-anonymity calculator
 
-Under construction!
+Documentation coming soon
