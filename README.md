@@ -2,6 +2,8 @@
 
 This repository is the source code for the k-anonymity application available at [labs.redivis.com/k-anonymity](https://labs.redivis.com/k-anonymity).
 
+![Application screenshot](assets/app_screenshot.png)
+
 ## About the tool
 
 This tool aims to compute the re-identification risks of datasets that are stored on the Redivis platform. To do so, it computes the distribution of [k-anonymity](https://en.wikipedia.org/wiki/K-anonymity) scores for a given dataset (a dataset is k-anonymous for each individual within the dataset if they cannot be distinguished from at least `k - 1` individuals who also appear in the dataset). You can use this tool to perform a k-anonymity analysis on any dataset that you have access to in Redivis.
