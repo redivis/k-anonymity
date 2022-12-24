@@ -2,7 +2,7 @@
 
 This repository is the source code for the k-anonymity application available at [labs.redivis.com/k-anonymity](https://labs.redivis.com/k-anonymity).
 
-![Application screenshot](assets/app_screenshot.png)
+[![Application screenshot](assets/app_screenshot.png)](https://labs.redivis.com/k-anonymity)
 
 ## About the tool
 
