@@ -1,5 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { withRouter } from 'react-router-dom';
+import { useEffect, useState, useCallback } from 'react';
 
 import Graph from '../Graph';
 import Settings from '../Settings';
@@ -8,12 +7,8 @@ import { createTheme, ThemeProvider } from '@mui/material/styles';
 
 import computeRisk from '../helpers/computeRisk';
 
-import * as styles from './styles.css';
-import {
-	authorize,
-	deauthorize,
-	isAuthorized,
-} from 'redivis';
+import styles from './styles.module.css';
+import { authorize, deauthorize, isAuthorized } from 'redivis';
 
 const DEFAULT_OWNER = 'Demo';
 const DEFAULT_DATASET = { name: 'CMS 2014 Medicare Data' };
@@ -48,16 +43,17 @@ const theme = createTheme({
 		fontWeightLight: 600,
 		fontWeightRegular: 600,
 		fontWeightMedium: 600,
-		fontWeigthBold: 700,
+		fontWeightBold: 700,
 	}
 });
 
-function App({ history }) {
+export default function App() {
+	// Restore the path that 404.html saved before redirecting here
 	useEffect(() => {
 		const path = localStorage.getItem('path');
 		if (path) {
 			localStorage.removeItem('path');
-			history.replace(`/${path}`);
+			window.history.replaceState(null, '', `/${path}`);
 		}
 	}, []);
 
@@ -74,19 +70,19 @@ function App({ history }) {
 	);
 
 	useEffect(() => {
-		handleSetIsUserAuthorized();
+		isAuthorized().then(setIsUserAuthorized);
 	}, []);
 
 	const handleAuthorize = useCallback(async () => {
 		await authorize();
 		handleSetIsUserAuthorized();
-	}, [authorize]);
+	}, [handleSetIsUserAuthorized]);
 
 	const handleUnauthorize = useCallback(async () => {
 		await deauthorize()
 		handleSetIsUserAuthorized();
 		setQueryResponse(null);
-	}, []);
+	}, [handleSetIsUserAuthorized]);
 
 	const [owner, setOwner] = useState(DEFAULT_OWNER);
 	const [dataset, setDataset] = useState(DEFAULT_DATASET);
@@ -161,4 +157,3 @@ function App({ history }) {
 		</ThemeProvider>
 	);
 }
-export default withRouter(App);

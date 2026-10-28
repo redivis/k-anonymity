@@ -16,7 +16,18 @@ Once you have completed all the input fields, click the "Calculate re-identifica
 
 ## About this repository
 
-This is a client-side application developed in React.js, utilizing the Redivis API for authorization, listing datasets and their metadata, as well as for executing the k-anonymity query. The specific SQL query used to compute k-anonymity can be found in `src/helpers/computeRisk.js` — this utilizes the BigQuery SQL dialect, which is ANSI-SQL compliant and generally portable to other database systems.
+This is a client-side application developed in React.js, utilizing the [Redivis JavaScript client](https://github.com/redivis/redivis-js) for authorization, listing datasets and their metadata, as well as for executing the k-anonymity query. The specific SQL query used to compute k-anonymity can be found in `src/helpers/computeRisk.js` — this utilizes the BigQuery SQL dialect, which is ANSI-SQL compliant and generally portable to other database systems.
+
+### Development
+
+The app is built with [Vite](https://vite.dev), and requires Node.js 22 or later.
+
+```sh
+npm install
+npm run dev      # Serves the app at http://localhost:8080/k-anonymity/
+npm run build    # Builds the app into dist/, which is deployed to GitHub Pages on pushes to main
+npm run lint
+```
 
 ## Acknowledgements
 

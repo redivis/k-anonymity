@@ -1,7 +1,4 @@
-import React from 'react';
-
-import Button from '@mui/material/Button'
-import LoadingButton from '@mui/lab/LoadingButton';
+import Button from '@mui/material/Button';
 
 const textStyle = {
 	padding: 0,
@@ -53,14 +50,14 @@ const primaryStyle = {
 		border: '1px solid #d4d3db',
 		boxShadow: 'none',
 	},
-	'&.MuiLoadingButton-loading': {
+	'&.MuiButton-loading': {
 		color: '#f5f5f7',
 	}
 }
 
-export function RedivisButton({ type = 'primary', hasLoading = false, ...rest }){
+export function RedivisButton({ type = 'primary', ...rest }){
 	if (type === 'primary'){
-		return hasLoading ? <LoadingButton sx={primaryStyle} {...rest}/> : <Button sx={primaryStyle} {...rest}/>
+		return <Button sx={primaryStyle} {...rest}/>
 	} else if (type === 'secondary'){
 		return <Button sx={secondaryStyle} {...rest}/>;
 	}

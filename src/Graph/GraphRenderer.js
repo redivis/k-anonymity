@@ -1,22 +1,26 @@
-import * as styles from './styles.css';
+import styles from './styles.module.css';
 
 import tooltip from '../helpers/d3/tooltip';
 
-import { select as d3Select } from 'd3-selection';
-import { scaleLinear as d3ScaleLinear, scaleBand as d3ScaleBand } from 'd3-scale';
-import { axisBottom as d3AxisBottom, axisRight as d3AxisRight } from 'd3-axis';
+import {
+	select as d3Select,
+	scaleLinear as d3ScaleLinear,
+	scaleBand as d3ScaleBand,
+	axisBottom as d3AxisBottom,
+	axisRight as d3AxisRight,
+} from 'd3';
 
 function percentage(d){
 	return Math.round(d.cumulativeRecords / d.totalRecords * 100);
 }
 
 function formatData(data){
-	const totalRecords = data.reduce((totalRows, { bucket, record_count }) => totalRows += record_count, 0);
+	const totalRecords = data.reduce((totalRows, { bucket, record_count }) => totalRows + record_count, 0);
 
 	const formattedBuckets = [];
 	let cumulativeRecords = 0;
 	for (let i = 1; i <= 20; i++) {
-		let relevantBucket = data.find(({ bucket }) => parseInt(bucket) === i);
+		const relevantBucket = data.find(({ bucket }) => parseInt(bucket) === i);
 		if (relevantBucket) cumulativeRecords += relevantBucket.record_count;
 		formattedBuckets.push({ bucket: i, cumulativeRecords, totalRecords });
 		if (cumulativeRecords >= totalRecords && i >= 10) break;

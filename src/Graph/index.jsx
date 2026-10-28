@@ -1,9 +1,8 @@
-import PropTypes from 'prop-types';
-import React, { useRef, useEffect, useCallback, useState } from 'react';
+import { useRef, useEffect, useCallback, useState } from 'react';
 
 import GraphRenderer from './GraphRenderer';
 
-import * as styles from './styles.css';
+import styles from './styles.module.css';
 
 const DEFAULT_BUCKET = 10;
 
@@ -40,8 +39,8 @@ export default function Graph({ queryResponse, dataset }) {
 	]);
 
 	const renderGraphText = useCallback(() => {
-		const droppedRecordCount = queryResponse.reduce((totalRows, { bucket, record_count }) => totalRows += isNaN(bucket) || bucket > highlightedBucket ? 0 : record_count, 0);
-		const totalRecordCount = queryResponse.reduce((totalRows, { record_count }) => totalRows += record_count, 0);
+		const droppedRecordCount = queryResponse.reduce((totalRows, { bucket, record_count }) => totalRows + (isNaN(bucket) || bucket > highlightedBucket ? 0 : record_count), 0);
+		const totalRecordCount = queryResponse.reduce((totalRows, { record_count }) => totalRows + record_count, 0);
 		const percent = Math.round(droppedRecordCount / totalRecordCount * 1e7) / 1e5;
 
 		return (
@@ -73,8 +72,3 @@ export default function Graph({ queryResponse, dataset }) {
 		</div>
 	);
 }
-
-Graph.propTypes = {
-	queryResponse: PropTypes.arrayOf(PropTypes.object),
-	dataset: PropTypes.object,
-};

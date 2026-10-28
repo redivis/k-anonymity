@@ -1,9 +1,12 @@
-module.exports = {
+import postcssPresetEnv from 'postcss-preset-env';
+import postcssPxToRem from 'postcss-pxtorem';
+
+export default {
 	plugins: [
-		require('postcss-preset-env')({
+		postcssPresetEnv({
 			stage: 1,
 		}),
-		require('postcss-pxtorem')({
+		postcssPxToRem({
 			rootValue: 16,
 			unitPrecision: 5,
 			propList: ['*'],

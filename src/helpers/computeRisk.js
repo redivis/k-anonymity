@@ -55,11 +55,11 @@ function getRiskQuery(variable, quasiIdentifiers, variablesByTableName, table, t
 		  
 			FROM (
 				SELECT 
-					${persistentVariableName} ${identifiersForTable.length ? ', ' + identifiersForTable.map(({ variable }) => variable.name).join(', ') : ''}
+					${persistentVariableName} ${identifiersForTable.length ? `, ${identifiersForTable.map(({ variable }) => variable.name).join(', ')}` : ''}
 				FROM ${qualifiedDataset}.${escapedTableIdentifier}
 				${sampleClause}
 				GROUP BY 
-					${persistentVariableName} ${identifiersForTable.length ? ', ' +  identifiersForTable.map(({ variable }) => variable.name).join(', ') : ''}
+					${persistentVariableName} ${identifiersForTable.length ? `, ${identifiersForTable.map(({ variable }) => variable.name).join(', ')}` : ''}
 			) AS ${escapedTableIdentifier}
 		  
 			${filteredMatchedTables
@@ -91,18 +91,9 @@ function getRiskQuery(variable, quasiIdentifiers, variablesByTableName, table, t
 	`;
 }
 
-const sampleData = [
-	{ bucket: 5, record_count: 1000 },
-	{ bucket: 6, record_count: 1000 },
-	{ bucket: 7, record_count: 1000 },
-	{ bucket: 8, record_count: 1000 },
-	{ bucket: 9, record_count: 1000 },
-]
-
 export default async function computeRisk(variable, quasiIdentifiers, variablesByTableName, table, tables, dataset, organizationIdentifier) {
-	// return sampleData;
 	const riskQuery = getRiskQuery(variable, quasiIdentifiers, variablesByTableName, table, tables, dataset, organizationIdentifier);
 	console.log('--riskQuery--\n', riskQuery);
-	const queryResponse = await query(riskQuery).listRows();
+	const queryResponse = await query(riskQuery).toRowsArray();
 	return queryResponse;
 }

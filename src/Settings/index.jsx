@@ -1,5 +1,4 @@
-import PropTypes from 'prop-types';
-import React, { useCallback, useState, useEffect } from 'react';
+import { Fragment, useCallback, useMemo, useState, useEffect } from 'react';
 
 import TextField from '@mui/material/TextField';
 import CircularProgress from '@mui/material/CircularProgress';
@@ -14,12 +13,34 @@ import listTables from '../helpers/listTables';
 import listVariablesByTableName from '../helpers/listVariablesByTableName';
 import tableHasVariable from '../helpers/tableHasVariable';
 
-import * as styles from './styles.css';
+import styles from './styles.module.css';
+
+function renderLoadingInput(label, isLoading) {
+	return (params) => (
+		<TextField
+			{...params}
+			variant={'outlined'}
+			label={label}
+			slotProps={{
+				...params.slotProps,
+				input: {
+					...params.slotProps.input,
+					endAdornment: (
+						<Fragment>
+							{isLoading ? <CircularProgress color={'inherit'} size={20} /> : null}
+							{params.slotProps.input.endAdornment}
+						</Fragment>
+					),
+				},
+			}}
+		/>
+	);
+}
 
 function formatQuasiIdentifiers(variable, table, tables, variablesByTableName){
-	let quasiIdentifiers = [];
+	const quasiIdentifiers = [];
 
-	for (let datasetTable of tables){
+	for (const datasetTable of tables){
 		if (variable ? !tableHasVariable(variable, datasetTable, variablesByTableName) : table.name !== datasetTable.name) continue;
 
 		for (const datasetTableVariable of (variablesByTableName[datasetTable.name] || [])){
@@ -71,7 +92,10 @@ export default function Settings({
 	const [isVariablesOpen, setIsVariablesOpen] = useState(false);
 	const isVariablesLoading = isVariablesOpen && variables.length === 0;
 
-	const [filteredQuasiIdentifiers, setFilteredQuasiIdentifiers] = useState([])
+	const filteredQuasiIdentifiers = useMemo(
+		() => (table && tables.length ? formatQuasiIdentifiers(variable, table, tables, variablesByTableName) : []),
+		[variable, table, tables, variablesByTableName],
+	);
 	const [isQuasiIdentifiersOpen, setIsQuasiIdentifiersOpen] = useState(false);
 	const isQuasiIdentifiersLoading = isQuasiIdentifiersOpen && filteredQuasiIdentifiers.length === 0;
 
@@ -125,7 +149,6 @@ export default function Settings({
 			setVariablesByTableName({});
 			setVariables([]);
 			setVariable(null);
-			setFilteredQuasiIdentifiers([]);
 			setSelectedQuasiIdentifiers([]);
 		}
 	}, [owner]);
@@ -138,7 +161,6 @@ export default function Settings({
 			setVariablesByTableName({});
 			setVariables([]);
 			setVariable(null);
-			setFilteredQuasiIdentifiers([]);
 			setSelectedQuasiIdentifiers([]);
 		}
 	}, [dataset]);
@@ -149,7 +171,9 @@ export default function Settings({
 				(async () => {
 					const nextDataset = await getDataset(owner, dataset);
 					setDataset(nextDataset);
-					setVersion((nextDataset || {}).getProperty?.('currentVersion') || (nextDataset || {}).getProperty?.('nextVersion') || null);
+					// Use a Version, so that its (normalized) tag matches those from listVersions()
+					const versionTag = (nextDataset?.getProperty('currentVersion') || nextDataset?.getProperty('nextVersion'))?.tag;
+					setVersion(versionTag ? await nextDataset.version(versionTag) : null);
 					const nextTables = await listTables(nextDataset);
 					setTables(nextTables);
 				})()
@@ -169,7 +193,6 @@ export default function Settings({
 			setVariablesByTableName({});
 			setVariables([]);
 			setVariable(null);
-			setFilteredQuasiIdentifiers([]);
 			setSelectedQuasiIdentifiers([]);
 		}
 	}, [version])
@@ -178,9 +201,8 @@ export default function Settings({
 		if (isUserAuthorized){
 			if (owner && dataset && version){
 				(async () => {
-					let nextDataset = dataset;
-					if (dataset.getProperty?.('version')?.tag !== version?.tag){
-						nextDataset = await getDataset(owner, dataset, { version: version.tag })
+					if (dataset.versionTag !== version?.tag){
+						const nextDataset = await getDataset(owner, dataset, { version: version.tag })
 						setDataset(nextDataset);
 						const nextTables = await listTables(nextDataset);
 						setTables(nextTables);
@@ -198,7 +220,6 @@ export default function Settings({
 			setVariablesByTableName({});
 			setVariables([]);
 			setVariable(null);
-			setFilteredQuasiIdentifiers([]);
 			setSelectedQuasiIdentifiers([]);
 		}
 	}, [table])
@@ -217,15 +238,6 @@ export default function Settings({
 			}
 		}
 	}, [isUserAuthorized, tables, table])
-
-	useEffect(() => {
-		if (table && tables.length){
-			const nextFilteredQuasiIdentifiers = formatQuasiIdentifiers(variable, table, tables, variablesByTableName);
-			setFilteredQuasiIdentifiers(nextFilteredQuasiIdentifiers);
-		} else {
-			setFilteredQuasiIdentifiers([]);
-		}
-	}, [variable, table, tables, variablesByTableName]);
 
 	const handleClearAll = useCallback(() => {
 		handleOwnerChange('');
@@ -259,7 +271,7 @@ export default function Settings({
 						)
 					}
 				</div>
-				{isUserAuthorized && <React.Fragment>
+				{isUserAuthorized && <Fragment>
 					<div className={styles.sectionWrapper}>
 						<div className={styles.fieldWrapper}>
 							<TextField
@@ -288,24 +300,7 @@ export default function Settings({
 								getOptionLabel={(option) => option.name}
 								options={datasets}
 								loading={isDatasetsLoading}
-								renderInput={(params) => (
-									<TextField
-										{...params}
-										variant={'outlined'}
-										label={'Dataset'}
-										InputProps={{
-											...params.InputProps,
-											endAdornment: (
-												<React.Fragment>
-													{isDatasetsLoading ? (
-														<CircularProgress color={'inherit'} size={20} />
-													) : null}
-													{params.InputProps.endAdornment}
-												</React.Fragment>
-											),
-										}}
-									/>
-								)}
+								renderInput={renderLoadingInput('Dataset', isDatasetsLoading)}
 							/>
 						</div>
 						<div className={styles.fieldWrapper}>
@@ -325,24 +320,7 @@ export default function Settings({
 								getOptionLabel={(option) => option.tag}
 								options={versions}
 								loading={isVersionsLoading}
-								renderInput={(params) => (
-									<TextField
-										{...params}
-										variant={'outlined'}
-										label={'Version'}
-										InputProps={{
-											...params.InputProps,
-											endAdornment: (
-												<React.Fragment>
-													{isVersionsLoading ? (
-														<CircularProgress color={'inherit'} size={20} />
-													) : null}
-													{params.InputProps.endAdornment}
-												</React.Fragment>
-											),
-										}}
-									/>
-								)}
+								renderInput={renderLoadingInput('Version', isVersionsLoading)}
 							/>
 						</div>
 						<div className={styles.fieldWrapper}>
@@ -362,24 +340,7 @@ export default function Settings({
 								getOptionLabel={(option) => option.name}
 								options={tables}
 								loading={isTablesLoading}
-								renderInput={(params) => (
-									<TextField
-										{...params}
-										variant={'outlined'}
-										label={'Primary input table'}
-										InputProps={{
-											...params.InputProps,
-											endAdornment: (
-												<React.Fragment>
-													{isTablesLoading ? (
-														<CircularProgress color={'inherit'} size={20} />
-													) : null}
-													{params.InputProps.endAdornment}
-												</React.Fragment>
-											),
-										}}
-									/>
-								)}
+								renderInput={renderLoadingInput('Primary input table', isTablesLoading)}
 							/>
 						</div>
 					</div>
@@ -401,24 +362,7 @@ export default function Settings({
 								getOptionLabel={(option) => option.name}
 								options={variables}
 								loading={isVariablesLoading}
-								renderInput={(params) => (
-									<TextField
-										{...params}
-										variant={'outlined'}
-										label={'Entity ID'}
-										InputProps={{
-											...params.InputProps,
-											endAdornment: (
-												<React.Fragment>
-													{isVariablesLoading ? (
-														<CircularProgress color={'inherit'} size={20} />
-													) : null}
-													{params.InputProps.endAdornment}
-												</React.Fragment>
-											),
-										}}
-									/>
-								)}
+								renderInput={renderLoadingInput('Entity ID', isVariablesLoading)}
 							/>
 						</div>
 						<div className={styles.fieldWrapper}>
@@ -439,24 +383,7 @@ export default function Settings({
 								getOptionLabel={(option) => `${option.variable.name} in ${option.table.name}`}
 								options={filteredQuasiIdentifiers}
 								loading={isQuasiIdentifiersLoading}
-								renderInput={(params) => (
-									<TextField
-										{...params}
-										variant={'outlined'}
-										label={'Quasi-identifiers'}
-										InputProps={{
-											...params.InputProps,
-											endAdornment: (
-												<React.Fragment>
-													{isQuasiIdentifiersLoading ? (
-														<CircularProgress color={'inherit'} size={20} />
-													) : null}
-													{params.InputProps.endAdornment}
-												</React.Fragment>
-											),
-										}}
-									/>
-								)}
+								renderInput={renderLoadingInput('Quasi-identifiers', isQuasiIdentifiersLoading)}
 							/>
 						</div>
 						<div className={styles.fieldWrapper}>
@@ -465,7 +392,6 @@ export default function Settings({
 					</div>
 					<div className={styles.sectionWrapper}>
 						<RedivisButton
-							hasLoading={true}
 							disabled={!owner || !dataset || !version || !table || !selectedQuasiIdentifiers?.length}
 							loading={isCalculatingRisk}
 							onClick={handleCalculateRisk}
@@ -473,37 +399,8 @@ export default function Settings({
 							{'Calculate re-identification risk'}
 						</RedivisButton>
 					</div>
-				</React.Fragment>}
+				</Fragment>}
 			</div>
 		</div>
 	);
 }
-
-Settings.propTypes = {
-	isUserAuthorized: PropTypes.bool,
-	onAuthorize: PropTypes.func,
-	onDeauthorize: PropTypes.func,
-	owner: PropTypes.string,
-	setOwner: PropTypes.func,
-	dataset: PropTypes.object,
-	setDataset: PropTypes.func,
-	datasets: PropTypes.arrayOf(PropTypes.object),
-	setDatasets: PropTypes.func,
-	version: PropTypes.object,
-	setVersion: PropTypes.func,
-	versions: PropTypes.arrayOf(PropTypes.object),
-	setVersions: PropTypes.func,
-	table: PropTypes.object,
-	setTable: PropTypes.func,
-	tables: PropTypes.arrayOf(PropTypes.object),
-	setTables: PropTypes.func,
-	variable: PropTypes.object,
-	setVariable: PropTypes.func,
-	variables: PropTypes.arrayOf(PropTypes.object),
-	setVariables: PropTypes.func,
-	selectedQuasiIdentifiers: PropTypes.arrayOf(PropTypes.object),
-	setSelectedQuasiIdentifiers: PropTypes.func,
-	variablesByTableName: PropTypes.object,
-	setVariablesByTableName: PropTypes.func,
-	onCalculateRisk: PropTypes.func,
-};

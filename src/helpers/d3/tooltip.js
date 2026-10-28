@@ -1,6 +1,6 @@
-import { select as d3Select, selection as d3Selection } from 'd3-selection';
+import { select as d3Select, selection as d3Selection } from 'd3';
 
-import styles from './d3.css';
+import styles from './d3.module.css';
 
 export default function tooltip() {
 	let node = initNode();

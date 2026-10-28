@@ -105,3 +105,6 @@ typings/
 
 .idea/
 .DS_Store
+
+# Build output
+dist/

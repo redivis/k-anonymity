@@ -1,13 +1,14 @@
-import React, { useCallback } from 'react';
+import { useCallback } from 'react';
 
 import { RedivisButtonText } from '../helpers/Buttons';
+import headerLogoUrl from '../../assets/header.svg';
 
-import * as styles from './styles.css';
+import styles from './styles.module.css';
 
 export default function Header({ title }) {
 	const renderHeaderLogo = useCallback(() => {
 		let headerLogo = (
-			<div className={styles.headerLogo} style={{ height: 33, width: 194, backgroundImage: `url(/k-anonymity/assets/header.svg)` }} />
+			<div className={styles.headerLogo} style={{ height: 33, width: 194, backgroundImage: `url(${headerLogoUrl})` }} />
 		)
 		if (title){
 			headerLogo = <a href={`https://labs.redivis.com`}>{headerLogo}</a>
